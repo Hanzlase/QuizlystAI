@@ -68,6 +68,15 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             updateProcessingMessage('Processing with AI...');
+
+            // Check if response is actually JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('Non-JSON response received:', text);
+                throw new Error('Server returned non-JSON response. Please check server logs.');
+            }
+
             const data = await response.json();
             
             if (response.ok) {
@@ -92,6 +101,15 @@ document.addEventListener('DOMContentLoaded', function() {
 • Search for "lecture" or "tutorial" videos which often have captions
 
 💡 Tip: You can also try copying the video description or transcript if available manually.`;
+            } else if (error.message.includes('JSON')) {
+                errorMessage = `❌ Server Error: The server is not responding correctly.
+
+This might be a deployment issue. Please try:
+• Refreshing the page
+• Waiting a few minutes and trying again
+• Checking if the server is properly deployed
+
+Technical details: ${error.message}`;
             }
 
             alert(errorMessage);
