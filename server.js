@@ -20,6 +20,21 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Add request logging middleware
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    next();
+});
+
+// Add error handling middleware for JSON parsing
+app.use((error, req, res, next) => {
+    if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
+        console.error('JSON Parse Error:', error.message);
+        return res.status(400).json({ message: 'Invalid JSON in request body' });
+    }
+    next();
+});
+
 // Configure multer for file uploads (disabled in Vercel)
 let upload;
 if (!isVercel) {
@@ -262,6 +277,11 @@ const extractFileContent = async (file) => {
 
 // Helper function to call AI API (OpenRouter) - OPTIMIZED with fallback models
 const callAIApi = async (prompt, instructions = '', timeout = 30000) => {
+    // Check if API key is available
+    if (!process.env.API_KEY) {
+        throw new Error('API_KEY environment variable is not set');
+    }
+
     // List of models to try in order (fastest to slowest)
     const models = [
         "google/gemini-flash-1.5",
@@ -306,12 +326,24 @@ const callAIApi = async (prompt, instructions = '', timeout = 30000) => {
         } catch (error) {
             console.error(`❌ Model ${models[i]} failed:`, error.response?.data?.error?.message || error.message);
 
+            // Log more details for debugging
+            if (error.response) {
+                console.error('Response status:', error.response.status);
+                console.error('Response data:', error.response.data);
+            }
+
             // If this is the last model, throw the error
             if (i === models.length - 1) {
                 if (error.message.includes('timeout')) {
                     throw new Error('AI processing is taking too long. Please try with shorter content.');
                 }
-                throw new Error('All AI models are currently unavailable. Please try again later.');
+                if (error.response?.status === 401) {
+                    throw new Error('API authentication failed. Please check your API key.');
+                }
+                if (error.response?.status === 429) {
+                    throw new Error('API rate limit exceeded. Please try again later.');
+                }
+                throw new Error(`All AI models are currently unavailable: ${error.message}`);
             }
 
             // Otherwise, continue to next model
@@ -321,6 +353,17 @@ const callAIApi = async (prompt, instructions = '', timeout = 30000) => {
 };
 
 // Routes
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        environment: isVercel ? 'vercel' : 'local',
+        hasApiKey: !!process.env.API_KEY,
+        nodeVersion: process.version
+    });
+});
 
 // Content Processing Endpoints
 app.post('/api/content/process', async (req, res) => {
