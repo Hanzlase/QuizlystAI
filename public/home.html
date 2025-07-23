@@ -2,18 +2,33 @@
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Quizlyst AI - Dashboard</title>
     <link rel="stylesheet" href="css/home.css?v=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Background Elements -->
+    <!-- Modern Background Elements -->
     <div class="bg-elements">
-        <div class="bg-circle bg-circle-1"></div>
-        <div class="bg-circle bg-circle-2"></div>
-        <div class="bg-circle bg-circle-3"></div>
+        <div class="floating-shape shape-1">
+            <div class="shape-inner"></div>
+        </div>
+        <div class="floating-shape shape-2">
+            <div class="shape-inner"></div>
+        </div>
+        <div class="floating-shape shape-3">
+            <div class="shape-inner"></div>
+        </div>
+        <div class="floating-shape shape-4">
+            <div class="shape-inner"></div>
+        </div>
+        <div class="floating-shape shape-5">
+            <div class="shape-inner"></div>
+        </div>
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
     </div>
 
     <!-- Navigation -->
@@ -28,9 +43,29 @@
 
             <div class="nav-actions">
                 <button class="theme-toggle" id="themeToggle" title="Toggle theme">
-                    <i class="fas fa-moon"></i>
+                    <div class="theme-toggle-track">
+                        <div class="theme-toggle-thumb">
+                            <div class="theme-icon sun-icon">
+                                <div class="sun-rays">
+                                    <div class="ray"></div>
+                                    <div class="ray"></div>
+                                    <div class="ray"></div>
+                                    <div class="ray"></div>
+                                    <div class="ray"></div>
+                                    <div class="ray"></div>
+                                    <div class="ray"></div>
+                                    <div class="ray"></div>
+                                </div>
+                                <div class="sun-center"></div>
+                            </div>
+                            <div class="theme-icon moon-icon">
+                                <div class="moon-crater crater-1"></div>
+                                <div class="moon-crater crater-2"></div>
+                                <div class="moon-crater crater-3"></div>
+                            </div>
+                        </div>
+                    </div>
                 </button>
-
             </div>
         </div>
     </nav>
@@ -137,26 +172,31 @@
             <!-- Processing Section -->
             <div class="processing-card hidden" id="processingSection">
                 <div class="processing-content">
-                    <div class="processing-animation">
-                        <div class="loader-modern">
-                            <div class="loader-circle"></div>
-                            <div class="loader-circle"></div>
-                            <div class="loader-circle"></div>
+                    <div class="processing-header">
+                        <div class="processing-spinner">
+                            <div class="spinner"></div>
                         </div>
+                        <h2>Processing your content...</h2>
+                        <p id="processingText">Extracting content...</p>
                     </div>
-                    <h3 class="processing-title">Processing your content...</h3>
-                    <p class="processing-subtitle">Our AI is analyzing and creating comprehensive learning materials</p>
+
                     <div class="processing-steps">
-                        <div class="step active">
-                            <i class="fas fa-download"></i>
+                        <div class="step-item active" id="contentStep1">
+                            <div class="step-icon">
+                                <i class="fas fa-download"></i>
+                            </div>
                             <span>Extracting content</span>
                         </div>
-                        <div class="step">
-                            <i class="fas fa-brain"></i>
+                        <div class="step-item" id="contentStep2">
+                            <div class="step-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
                             <span>AI analysis</span>
                         </div>
-                        <div class="step">
-                            <i class="fas fa-file-alt"></i>
+                        <div class="step-item" id="contentStep3">
+                            <div class="step-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
                             <span>Generating notes</span>
                         </div>
                     </div>
@@ -189,6 +229,34 @@
                             </button>
                         </div>
                     </div>
+
+                    <div class="control-group">
+                        <label>Translation:</label>
+                        <div class="translation-controls">
+                            <div class="language-selector-wrapper">
+                                <div class="language-dropdown" id="notesLanguageDropdown">
+                                    <div class="language-selected" id="notesLanguageSelected">
+                                        <span class="flag">🇺🇸</span>
+                                        <span class="language-name">English (Original)</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                    <div class="language-options" id="notesLanguageOptions">
+                                        <div class="language-search">
+                                            <input type="text" placeholder="Search languages..." id="notesLanguageSearch">
+                                            <i class="fas fa-search"></i>
+                                        </div>
+                                        <div class="language-list" id="notesLanguageList">
+                                            <!-- Languages will be populated by JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="translateNotesBtn" class="translate-btn" disabled>
+                                <i class="fas fa-language"></i>
+                                Translate
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="custom-options hidden" id="customOptions">
@@ -216,10 +284,52 @@
 
                     <div class="tab-content">
                         <div class="tab-pane active" id="notesTab">
-                            <div class="notes-output" id="notesOutput"></div>
+                            <div class="content-header">
+                                <div class="language-indicator" id="notesLanguageIndicator">
+                                    <i class="fas fa-globe"></i>
+                                    <span>English (Original)</span>
+                                </div>
+                            </div>
+                            <div class="content-container">
+                                <div class="content-section">
+                                    <div class="content-label">
+                                        <i class="fas fa-flag-usa"></i>
+                                        <span>Original (English)</span>
+                                    </div>
+                                    <div class="notes-output" id="notesOutput"></div>
+                                </div>
+                                <div class="content-section translated-section hidden" id="notesTranslatedSection">
+                                    <div class="content-label">
+                                        <i class="fas fa-language"></i>
+                                        <span id="notesTranslatedLabel">Translated</span>
+                                    </div>
+                                    <div class="notes-output" id="notesOutputTranslated"></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="tab-pane" id="summaryTab">
-                            <div class="summary-output" id="summaryOutput"></div>
+                            <div class="content-header">
+                                <div class="language-indicator" id="summaryLanguageIndicator">
+                                    <i class="fas fa-globe"></i>
+                                    <span>English (Original)</span>
+                                </div>
+                            </div>
+                            <div class="content-container">
+                                <div class="content-section">
+                                    <div class="content-label">
+                                        <i class="fas fa-flag-usa"></i>
+                                        <span>Original (English)</span>
+                                    </div>
+                                    <div class="summary-output" id="summaryOutput"></div>
+                                </div>
+                                <div class="content-section translated-section hidden" id="summaryTranslatedSection">
+                                    <div class="content-label">
+                                        <i class="fas fa-language"></i>
+                                        <span id="summaryTranslatedLabel">Translated</span>
+                                    </div>
+                                    <div class="summary-output" id="summaryOutputTranslated"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -324,6 +434,36 @@
                     </div>
                 </div>
 
+                <div class="quiz-translation-controls">
+                    <div class="control-group">
+                        <label>Quiz Language:</label>
+                        <div class="translation-controls">
+                            <div class="language-selector-wrapper">
+                                <div class="language-dropdown" id="quizLanguageDropdown">
+                                    <div class="language-selected" id="quizLanguageSelected">
+                                        <span class="flag">🇺🇸</span>
+                                        <span class="language-name">English (Original)</span>
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                    <div class="language-options" id="quizLanguageOptions">
+                                        <div class="language-search">
+                                            <input type="text" placeholder="Search languages..." id="quizLanguageSearch">
+                                            <i class="fas fa-search"></i>
+                                        </div>
+                                        <div class="language-list" id="quizLanguageList">
+                                            <!-- Languages will be populated by JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="translateQuizBtn" class="translate-btn" disabled>
+                                <i class="fas fa-language"></i>
+                                Translate Quiz
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="quiz-info" id="quizInfo"></div>
                 <div class="quiz-container" id="quizContainer"></div>
 
@@ -370,7 +510,7 @@
                         <div class="chart-container">
                             <h4>Performance Overview</h4>
                             <div class="chart-wrapper">
-                                <canvas id="resultsChart" width="300" height="300"></canvas>
+                                <canvas id="resultsChart"></canvas>
                             </div>
                         </div>
 
