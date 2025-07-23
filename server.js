@@ -276,7 +276,7 @@ const extractFileContent = async (file) => {
 };
 
 // Helper function to call AI API with dual API support
-const callAIApi = async (prompt, instructions = '', timeout = 30000) => {
+const callAIApi = async (prompt, instructions = '', timeout = 50000) => { // 50 second timeout
     // Check if primary API key is available
     if (!process.env.API_KEY) {
         throw new Error('API_KEY environment variable is not set');
@@ -301,7 +301,9 @@ const callAIApi = async (prompt, instructions = '', timeout = 30000) => {
     for (let i = 0; i < modelConfigs.length; i++) {
         const config = modelConfigs[i];
         try {
-            console.log(`🤖 Trying ${config.provider}: ${config.model} (timeout: ${timeout}ms)...`);
+            // Use full timeout for both models
+            const modelTimeout = timeout;
+            console.log(`🤖 Trying ${config.provider}: ${config.model} (timeout: ${modelTimeout}ms)...`);
 
             let apiCall;
 
@@ -313,9 +315,10 @@ const callAIApi = async (prompt, instructions = '', timeout = 30000) => {
                         { role: "system", content: instructions || "You are a helpful learning assistant. Be concise and clear." },
                         { role: "user", content: prompt }
                     ],
-                    temperature: 0.4,
-                    max_tokens: 4000,
-                    top_p: 0.9
+                    temperature: 0.4, // Balanced temperature for quality responses
+                    // max_tokens removed to allow full responses
+                    top_p: 0.9,       // Higher for better quality
+                    stream: false     // Ensure no streaming for consistent timing
                 }, {
                     headers: {
                         'Authorization': `Bearer ${config.apiKey}`,
@@ -323,7 +326,7 @@ const callAIApi = async (prompt, instructions = '', timeout = 30000) => {
                         'HTTP-Referer': 'http://localhost:5000',
                         'X-Title': 'Quizlyst AI'
                     },
-                    timeout: timeout - 2000
+                    timeout: modelTimeout - 1000 // Reduced buffer time
                 });
             } else if (config.provider === "Cohere") {
                 // Cohere API call
@@ -331,21 +334,23 @@ const callAIApi = async (prompt, instructions = '', timeout = 30000) => {
                     model: config.model,
                     message: prompt,
                     preamble: instructions || "You are a helpful learning assistant. Be concise and clear.",
-                    temperature: 0.4,
-                    max_tokens: 4000
+                    temperature: 0.4,    // Balanced temperature for quality
+                    // max_tokens removed to allow full responses
+                    p: 0.9,             // Higher for better quality
+                    stream: false       // No streaming
                 }, {
                     headers: {
                         'Authorization': `Bearer ${config.apiKey}`,
                         'Content-Type': 'application/json'
                     },
-                    timeout: timeout - 2000
+                    timeout: modelTimeout - 1000 // Reduced buffer
                 });
             }
 
             const response = await Promise.race([
                 apiCall,
                 new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('AI API timeout')), timeout)
+                    setTimeout(() => reject(new Error('AI API timeout')), modelTimeout)
                 )
             ]);
 
@@ -470,7 +475,7 @@ Format the response as well-structured markdown that will be easy to read and un
         const aiResponse = await callAIApi(
             notesPrompt,
             systemPrompt,
-            45000 // 45 second timeout for detailed content
+            50000 // 50 second timeout for notes
         );
 
         console.log(`📝 Notes generated, creating summary...`);
@@ -479,7 +484,7 @@ Format the response as well-structured markdown that will be easy to read and un
         const summary = await callAIApi(
             `Summarize in 2-3 sentences: ${aiResponse}`,
             "Create brief summaries.",
-            15000 // 15 second timeout
+            50000 // 50 second timeout for summary
         );
 
         // Store content in memory for quiz generation
@@ -713,7 +718,8 @@ CRITICAL:
                 try {
                     const quizResponse = await callAIApi(
                         batchPrompt,
-                        "You are an expert quiz creator who generates well-structured multiple choice questions for educational assessment."
+                        "You are an expert quiz creator who generates well-structured multiple choice questions for educational assessment.",
+                        50000 // 50 second timeout for quiz generation
                     );
 
                     console.log(`🤖 AI Quiz Response received for batch ${batch + 1}`);
@@ -743,7 +749,8 @@ CRITICAL:
                 try {
                     const quizResponse = await callAIApi(
                         quizPrompt,
-                        "You are an expert quiz creator who generates well-structured multiple choice questions for educational assessment."
+                        "You are an expert quiz creator who generates well-structured multiple choice questions for educational assessment.",
+                        50000 // 50 second timeout for quiz generation
                     );
 
                     console.log('🤖 AI Quiz Response received');
@@ -965,7 +972,8 @@ CRITICAL:
 
         const quizResponse = await callAIApi(
             quizPrompt,
-            "You are an expert quiz creator who generates well-structured multiple choice questions for educational assessment."
+            "You are an expert quiz creator who generates well-structured multiple choice questions for educational assessment.",
+            50000 // 50 second timeout for quiz generation
         );
 
         console.log('🤖 AI Quiz Response received for difficulty change');
