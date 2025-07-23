@@ -10,7 +10,7 @@
       "use": "@vercel/static"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
       "source": "/css/(.*)",
       "destination": "public/css/$1"
@@ -19,6 +19,12 @@
       "source": "/js/(.*)",
       "destination": "public/js/$1"
     },
+    {
+      "src": "/(.*)",
+      "dest": "public/home.html"
+    }
+  ],
+  "headers": [
     {
       "source": "/(.*)",
       "destination": "public/home.html"
