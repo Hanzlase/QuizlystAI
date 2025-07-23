@@ -199,12 +199,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Vercel for seamless deployment
 - All open-source contributors
 
-## 📞 Support
-
-- 📧 Email: support@quizlyst.ai
-- 🐛 Issues: [GitHub Issues](https://github.com/yourusername/quizlyst-ai/issues)
-- 📖 Documentation: [Wiki](https://github.com/yourusername/quizlyst-ai/wiki)
-
 ---
 
 <div align="center">
