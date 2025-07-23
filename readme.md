@@ -4,7 +4,7 @@
 
 ### *Transform Any Content Into Learning Gold*
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Now-6366f1?style=for-the-badge)](https://quizlyst-ai.vercel.app)
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Now-6366f1?style=for-the-badge)](https://quizlystai.vercel.app)
 [![GitHub Stars](https://img.shields.io/github/stars/yourusername/quizlyst-ai?style=for-the-badge&color=gold)](https://github.com/yourusername/quizlyst-ai/stargazers)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
