@@ -108,8 +108,8 @@
 
 ```bash
 # 1️⃣ Clone the repository
-git clone https://github.com/yourusername/quizlyst-ai.git
-cd quizlyst-ai
+git clone https://github.com/Hanzlase/QuizlystAI.git
+cd quizlystai
 
 # 2️⃣ Install dependencies
 npm install
