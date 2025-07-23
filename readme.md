@@ -1,207 +1,505 @@
-# QUIZLYST AI
+<div align="center">
 
-*Transform Any Content Into Learning Gold*
+# 🧠 QUIZLYST AI
 
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![Express.js](https://img.shields.io/badge/Express.js-4.18+-blue.svg)](https://expressjs.com/)
-[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black.svg)](https://vercel.com/)
+### *Transform Any Content Into Learning Gold*
 
-## 🚀 Overview
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Visit_Now-6366f1?style=for-the-badge)](https://quizlyst-ai.vercel.app)
+[![GitHub Stars](https://img.shields.io/github/stars/yourusername/quizlyst-ai?style=for-the-badge&color=gold)](https://github.com/yourusername/quizlyst-ai/stargazers)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-Quizlyst AI is an intelligent learning platform that transforms any content source into comprehensive study materials. Upload documents, paste URLs, or share YouTube videos - our AI creates detailed notes, summaries, and interactive quizzes instantly.
+![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=nodedotjs)
+![Express.js](https://img.shields.io/badge/Express.js-4.18+-000000?style=flat-square&logo=express)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
+![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=flat-square&logo=vercel)
 
-## ✨ Features
+</div>
 
-- **📄 Multi-Format Support**: Process PDFs, DOCX, TXT files, web articles, and YouTube videos
-- **🤖 AI-Powered Analysis**: Generate comprehensive study notes with proper markdown formatting
-- **📝 Smart Summaries**: Create concise summaries that capture key concepts
-- **🎯 Interactive Quizzes**: Generate multiple-choice quizzes with customizable difficulty levels
-- **🌍 Multi-Language Support**: Translate content to multiple languages
-- **⚡ Real-Time Processing**: Fast content extraction and AI analysis
-- **📱 Responsive Design**: Works seamlessly on desktop and mobile devices
+---
 
-## 🛠️ Built With
+## 🎯 What is Quizlyst AI?
 
+**Quizlyst AI** is a revolutionary learning platform that instantly transforms any content into comprehensive study materials. Whether you're a student, educator, or lifelong learner, our AI-powered system creates personalized notes, summaries, and interactive quizzes from your content in seconds.
+
+> 🎓 **Perfect for**: Students preparing for exams, educators creating course materials, professionals upskilling, and anyone who wants to learn more efficiently.
+
+### 🌟 Why Choose Quizlyst AI?
+
+- ⚡ **Lightning Fast**: Process content in under 30 seconds
+- 🎯 **Smart Learning**: AI adapts to your learning style
+- 📱 **Always Available**: Works on any device, anywhere
+- 🌍 **Global Ready**: Multi-language support included
+- 🔒 **Privacy First**: Your content stays secure
+
+---
+
+## ✨ Powerful Features
+
+<table>
+<tr>
+<td width="50%">
+
+### 📚 **Content Processing**
+- 📄 **Documents**: PDF, DOCX, TXT files
+- 🌐 **Web Articles**: Any URL or blog post
+- 📺 **YouTube Videos**: Extract from transcripts
+- 📊 **Smart Extraction**: AI-powered content analysis
+
+</td>
+<td width="50%">
+
+### 🤖 **AI-Powered Generation**
+- 📝 **Study Notes**: Comprehensive, well-structured
+- 📋 **Smart Summaries**: Key concepts highlighted
+- 🎯 **Interactive Quizzes**: Multiple difficulty levels
+- 🌍 **Translation**: 50+ languages supported
+
+</td>
+</tr>
+</table>
+
+### 🎨 **User Experience**
+- 🎨 **Modern UI**: Clean, intuitive interface
+- 📱 **Responsive Design**: Perfect on mobile & desktop
+- 🌙 **Dark/Light Mode**: Choose your preference
+- ⚡ **Real-time Processing**: Live progress updates
+
+---
+
+## 🛠️ Technology Stack
+
+<div align="center">
+
+### **Backend Powerhouse**
 ![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+
+### **AI & Processing**
+![OpenRouter](https://img.shields.io/badge/OpenRouter-API-6366f1?style=for-the-badge)
+![Cohere](https://img.shields.io/badge/Cohere-AI-ff6b6b?style=for-the-badge)
+![Cheerio](https://img.shields.io/badge/Cheerio-Web_Scraping-orange?style=for-the-badge)
+
+### **Frontend Excellence**
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![Chart.js](https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white)
+
+### **Deployment & Tools**
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![Multer](https://img.shields.io/badge/Multer-File_Upload-green?style=for-the-badge)
+![PDF Parse](https://img.shields.io/badge/PDF_Parse-Document_Processing-red?style=for-the-badge)
 
-### Core Technologies
+</div>
 
-- **Backend**: Express.js, Node.js
-- **AI Integration**: OpenRouter API, Cohere API
-- **Content Processing**: Cheerio, PDF-Parse, Mammoth, YouTube-Transcript
-- **File Handling**: Multer
-- **Deployment**: Vercel (Serverless)
+---
 
-## 🚀 Quick Start
+## 🚀 Quick Start Guide
 
-### Prerequisites
+### 📋 Prerequisites
 
-- Node.js 18+ installed
-- API keys for OpenRouter and/or Cohere
+```bash
+✅ Node.js 18+ installed
+✅ OpenRouter API key (primary)
+✅ Cohere API key (optional fallback)
+```
 
-### Installation
+### ⚡ Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/quizlyst-ai.git
-   cd quizlyst-ai
-   ```
+```bash
+# 1️⃣ Clone the repository
+git clone https://github.com/yourusername/quizlyst-ai.git
+cd quizlyst-ai
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# 2️⃣ Install dependencies
+npm install
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Add your API keys to `.env`:
-   ```env
-   API_KEY=your_openrouter_api_key
-   COHERE_KEY=your_cohere_api_key
-   PORT=5000
-   ```
+# 3️⃣ Set up environment variables
+cp .env.example .env
+# Edit .env with your API keys
 
-4. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+# 4️⃣ Start development server
+npm run dev
 
-5. **Open your browser**
-   Navigate to `http://localhost:5000`
+# 5️⃣ Open in browser
+# Navigate to http://localhost:5000
+```
 
-## 📖 Usage
+### 🔑 Environment Setup
 
-### Processing Content
+Create a `.env` file in the root directory:
 
-1. **Choose Content Type**:
-   - 📄 Upload documents (PDF, DOCX, TXT)
-   - 🔗 Paste web article URLs
-   - 📺 Share YouTube video links
+```env
+# Required
+API_KEY=your_openrouter_api_key_here
 
-2. **Select Note Style**:
-   - Easy Wording: Simplified explanations
-   - Custom Mode: Personalized instructions
+# Optional (fallback)
+COHERE_KEY=your_cohere_api_key_here
 
-3. **Generate Materials**:
-   - Detailed study notes with markdown formatting
-   - Concise summaries
-   - Interactive quizzes with multiple difficulty levels
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+```
 
-### API Endpoints
+---
+
+## 📖 How to Use
+
+### 🎯 **Step 1: Choose Your Content**
+
+<table>
+<tr>
+<td align="center" width="33%">
+<img src="https://img.icons8.com/fluency/48/000000/document.png" alt="Documents"/>
+<br><strong>📄 Upload Files</strong>
+<br>PDF, DOCX, TXT
+<br><em>Up to 10MB</em>
+</td>
+<td align="center" width="33%">
+<img src="https://img.icons8.com/fluency/48/000000/link.png" alt="Web"/>
+<br><strong>🔗 Paste URLs</strong>
+<br>Articles, blogs, docs
+<br><em>Any website</em>
+</td>
+<td align="center" width="33%">
+<img src="https://img.icons8.com/fluency/48/000000/youtube-play.png" alt="YouTube"/>
+<br><strong>📺 YouTube Videos</strong>
+<br>Educational content
+<br><em>With transcripts</em>
+</td>
+</tr>
+</table>
+
+### 🎨 **Step 2: Customize Your Learning**
+
+- **📝 Note Styles**: Simple explanations or detailed analysis
+- **🎯 Custom Instructions**: "Explain like I'm 5" or "Focus on key formulas"
+- **🌍 Language**: Translate to your preferred language
+- **📊 Quiz Settings**: Choose difficulty and question count
+
+### 🚀 **Step 3: Get Your Materials**
+
+- **📚 Study Notes**: Comprehensive, markdown-formatted notes
+- **📋 Smart Summary**: Key concepts in 2-3 sentences
+- **🎯 Interactive Quiz**: Test your knowledge immediately
+
+---
+
+## 🔌 API Reference
+
+### **Content Processing**
 
 ```javascript
-// Process URL content
 POST /api/content/process
+Content-Type: application/json
+
 {
-  "url": "https://example.com",
+  "url": "https://example.com/article",
   "type": "link",
   "mode": "simple",
-  "customPrompt": "Explain like I'm 5"
-}
-
-// Upload file (local only)
-POST /api/content/upload
-// FormData with file and options
-
-// Generate quiz
-POST /api/quiz/generate
-{
-  "difficulty": "medium",
-  "questionCount": 10
+  "customPrompt": "Focus on main concepts"
 }
 ```
 
-## 🏗️ Project Structure
+### **File Upload** *(Local Development Only)*
+
+```javascript
+POST /api/content/upload
+Content-Type: multipart/form-data
+
+// FormData with file and processing options
+```
+
+### **Quiz Generation**
+
+```javascript
+POST /api/quiz/generate
+Content-Type: application/json
+
+{
+  "difficulty": "medium",
+  "questionCount": 10,
+  "focusAreas": ["key concepts", "definitions"]
+}
+```
+
+### **Health Check**
+
+```javascript
+GET /api/health
+
+// Response
+{
+  "status": "ok",
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "environment": "vercel",
+  "hasApiKey": true
+}
+```
+
+---
+
+## 🏗️ Project Architecture
 
 ```
 quizlyst-ai/
-├── public/
-│   ├── css/
-│   │   └── home.css
-│   ├── js/
-│   │   └── home.js
-│   └── home.html
-├── uploads/           # Temporary file storage (local only)
-├── server.js          # Main server file
-├── package.json
-├── vercel.json        # Vercel deployment config
-└── README.md
+├── 📁 public/                 # Frontend assets
+│   ├── 🎨 css/
+│   │   └── home.css          # Responsive styling
+│   ├── ⚡ js/
+│   │   └── home.js           # Interactive features
+│   └── 📄 home.html          # Main interface
+├── 📁 uploads/               # Temp file storage (local)
+├── 🚀 server.js              # Express server & API
+├── 📦 package.json           # Dependencies & scripts
+├── ⚙️ vercel.json            # Deployment config
+└── 📖 README.md              # You are here!
 ```
 
-## 🌐 Deployment
+### 🔧 **Key Components**
 
-### Vercel (Recommended)
+- **🎯 Content Extraction**: Multi-format processing with error handling
+- **🤖 AI Integration**: Dual API support with automatic fallback
+- **📱 Responsive UI**: Mobile-first design with modern CSS
+- **⚡ Real-time Updates**: Live processing status and progress bars
+- **🌍 Translation**: Built-in multi-language support
 
-1. **Connect to Vercel**:
-   ```bash
-   npm i -g vercel
-   vercel
-   ```
+---
 
-2. **Set environment variables** in Vercel dashboard:
-   - `API_KEY`: Your OpenRouter API key
-   - `COHERE_KEY`: Your Cohere API key
+## 🌐 Deployment Options
 
-3. **Deploy**:
-   ```bash
-   vercel --prod
-   ```
+### 🚀 **Vercel (Recommended)**
 
-### Local Development
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/quizlyst-ai)
 
 ```bash
-npm run dev    # Development with nodemon
-npm start      # Production mode
+# Quick deploy
+npm i -g vercel
+vercel
+
+# Set environment variables in Vercel dashboard:
+# API_KEY, COHERE_KEY
 ```
 
-## 🔧 Configuration
+### 🐳 **Docker**
 
-### Environment Variables
+```dockerfile
+# Coming soon - Docker support
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+EXPOSE 5000
+CMD ["npm", "start"]
+```
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `API_KEY` | OpenRouter API key | Yes |
-| `COHERE_KEY` | Cohere API key | Optional (fallback) |
-| `PORT` | Server port | No (default: 5000) |
-| `VERCEL` | Vercel environment flag | Auto-set |
+### ☁️ **Other Platforms**
 
-### Supported File Types
+- **Heroku**: Add `Procfile` with `web: node server.js`
+- **Railway**: Connect GitHub repo directly
+- **DigitalOcean**: Use App Platform with Node.js preset
 
-- **Documents**: PDF, DOCX, TXT (up to 10MB)
-- **Web Content**: Articles, blog posts, documentation
-- **Videos**: YouTube videos with captions/subtitles
+---
+
+## ⚙️ Configuration Guide
+
+### 🔑 **Environment Variables**
+
+| Variable | Description | Required | Default |
+|----------|-------------|----------|---------|
+| `API_KEY` | OpenRouter API key | ✅ Yes | - |
+| `COHERE_KEY` | Cohere API key (fallback) | ⚠️ Recommended | - |
+| `PORT` | Server port | ❌ No | `5000` |
+| `NODE_ENV` | Environment mode | ❌ No | `development` |
+| `VERCEL` | Vercel environment flag | 🤖 Auto-set | - |
+
+### 📁 **Supported File Types**
+
+| Type | Extensions | Max Size | Notes |
+|------|------------|----------|-------|
+| **Documents** | `.pdf`, `.docx`, `.txt` | 10MB | Text extraction optimized |
+| **Web Content** | Any URL | - | Smart content detection |
+| **Videos** | YouTube URLs | - | Requires captions/transcripts |
+
+### 🎯 **AI Model Configuration**
+
+- **Primary**: Qwen 3 235B (OpenRouter) - High quality, fast
+- **Fallback**: Command R+ (Cohere) - Reliable backup
+- **Timeout**: 50 seconds per request
+- **Temperature**: 0.4 (balanced creativity/accuracy)
+
+---
 
 ## 🤝 Contributing
 
+We love contributions! Here's how to get started:
+
+### 🐛 **Found a Bug?**
+
+1. Check [existing issues](https://github.com/yourusername/quizlyst-ai/issues)
+2. Create a new issue with detailed description
+3. Include steps to reproduce
+
+### ✨ **Want to Add a Feature?**
+
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes with tests
+4. Commit: `git commit -m 'Add amazing feature'`
+5. Push: `git push origin feature/amazing-feature`
+6. Open a Pull Request
 
-## 📝 License
+### 📝 **Development Guidelines**
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+- Follow existing code style
+- Add comments for complex logic
+- Test on both desktop and mobile
+- Update documentation if needed
+
+---
+
+## 📊 Performance & Limits
+
+### ⚡ **Processing Speed**
+- **Web Articles**: ~15-30 seconds
+- **PDF Documents**: ~20-45 seconds
+- **YouTube Videos**: ~10-25 seconds
+
+### 📏 **Content Limits**
+- **Text Content**: 10,000 characters (auto-truncated)
+- **File Size**: 10MB maximum
+- **Quiz Questions**: 1-50 per generation
+
+### 🔄 **API Rate Limits**
+- **OpenRouter**: Varies by plan
+- **Cohere**: 1000 requests/month (free tier)
+- **Automatic Fallback**: Seamless switching between APIs
+
+---
+
+## 🆘 Troubleshooting
+
+### ❌ **Common Issues**
+
+<details>
+<summary><strong>🔑 "API authentication failed"</strong></summary>
+
+- Check your API keys in `.env` file
+- Verify keys are valid and have sufficient credits
+- Ensure no extra spaces in environment variables
+</details>
+
+<details>
+<summary><strong>⏱️ "Processing timeout"</strong></summary>
+
+- Try with shorter content (under 10,000 characters)
+- Check your internet connection
+- Verify API service status
+</details>
+
+<details>
+<summary><strong>📁 "File upload failed"</strong></summary>
+
+- Ensure file is under 10MB
+- Check file format (PDF, DOCX, TXT only)
+- Try uploading from local environment (not Vercel)
+</details>
+
+### 🔧 **Debug Mode**
+
+```bash
+# Enable detailed logging
+NODE_ENV=development npm run dev
+
+# Check API health
+curl http://localhost:5000/api/health
+```
+
+---
+
+## 📈 Roadmap
+
+### 🎯 **Coming Soon**
+
+- [ ] 🎨 **Custom Themes**: Personalize your interface
+- [ ] 📊 **Learning Analytics**: Track your progress
+- [ ] 👥 **Team Collaboration**: Share study materials
+- [ ] 🔄 **Batch Processing**: Handle multiple files
+- [ ] 📱 **Mobile App**: Native iOS/Android apps
+- [ ] 🎓 **LMS Integration**: Canvas, Moodle support
+
+### 🚀 **Future Vision**
+
+- [ ] 🧠 **Adaptive Learning**: AI that learns your style
+- [ ] 🎮 **Gamification**: Points, badges, leaderboards
+- [ ] 🔊 **Audio Generation**: Text-to-speech notes
+- [ ] 📝 **Handwriting Recognition**: Process handwritten notes
+- [ ] 🌐 **Offline Mode**: Work without internet
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+### 🎯 **What this means:**
+- ✅ Commercial use allowed
+- ✅ Modification allowed
+- ✅ Distribution allowed
+- ✅ Private use allowed
+- ❌ No warranty provided
+
+---
 
 ## 🙏 Acknowledgments
 
-- OpenRouter for AI model access
-- Cohere for fallback AI capabilities
-- Vercel for seamless deployment
-- All open-source contributors
+<div align="center">
+
+### **Special Thanks To:**
+
+🤖 **[OpenRouter](https://openrouter.ai/)** - Primary AI model access  
+🧠 **[Cohere](https://cohere.ai/)** - Reliable AI fallback  
+⚡ **[Vercel](https://vercel.com/)** - Seamless deployment platform  
+📚 **Open Source Community** - Amazing libraries and tools  
+
+### **Built With Love By:**
+**The Quizlyst Team** - Passionate about making learning accessible to everyone
+
+</div>
+
+---
+
+## 📞 Get Help & Support
+
+<div align="center">
+
+### **Need Help? We're Here!**
+
+[![Email Support](https://img.shields.io/badge/📧_Email-support@quizlyst.ai-blue?style=for-the-badge)](mailto:support@quizlyst.ai)
+[![GitHub Issues](https://img.shields.io/badge/🐛_Issues-GitHub-black?style=for-the-badge)](https://github.com/yourusername/quizlyst-ai/issues)
+[![Documentation](https://img.shields.io/badge/📖_Docs-Wiki-green?style=for-the-badge)](https://github.com/yourusername/quizlyst-ai/wiki)
+
+### **Community**
+
+[![Discord](https://img.shields.io/badge/💬_Discord-Join_Chat-7289da?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/quizlyst)
+[![Twitter](https://img.shields.io/badge/🐦_Twitter-Follow_Us-1da1f2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/quizlyst_ai)
+
+</div>
 
 ---
 
 <div align="center">
-  <strong>Made with ❤️ for learners everywhere</strong>
+
+### **⭐ Star this repo if you found it helpful!**
+
+[![GitHub Stars](https://img.shields.io/github/stars/yourusername/quizlyst-ai?style=social)](https://github.com/yourusername/quizlyst-ai/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/yourusername/quizlyst-ai?style=social)](https://github.com/yourusername/quizlyst-ai/network/members)
+[![GitHub Watchers](https://img.shields.io/github/watchers/yourusername/quizlyst-ai?style=social)](https://github.com/yourusername/quizlyst-ai/watchers)
+
+**Made with ❤️ for learners everywhere**
+
+*Transform your learning journey today with Quizlyst AI*
+
 </div>
 
