@@ -275,43 +275,72 @@ const extractFileContent = async (file) => {
     }
 };
 
-// Helper function to call AI API (OpenRouter) - OPTIMIZED with fallback models
+// Helper function to call AI API with dual API support
 const callAIApi = async (prompt, instructions = '', timeout = 30000) => {
-    // Check if API key is available
+    // Check if primary API key is available
     if (!process.env.API_KEY) {
         throw new Error('API_KEY environment variable is not set');
     }
 
-    // List of models to try in order (fastest to slowest)
-    const models = [
-        "google/gemini-flash-1.5",
-        "microsoft/wizardlm-2-8x22b",
-        "meta-llama/llama-3.1-8b-instruct:free",
-        "deepseek/deepseek-r1:free"
+    // Primary model (OpenRouter) and fallback model (Cohere)
+    const modelConfigs = [
+        {
+            model: "qwen/qwen3-235b-a22b-07-25:free",
+            apiKey: process.env.API_KEY,
+            endpoint: "https://openrouter.ai/api/v1/chat/completions",
+            provider: "OpenRouter"
+        },
+        {
+            model: "command-r-plus",
+            apiKey: process.env.COHERE_KEY,
+            endpoint: "https://api.cohere.ai/v1/chat",
+            provider: "Cohere"
+        }
     ];
 
-    for (let i = 0; i < models.length; i++) {
+    for (let i = 0; i < modelConfigs.length; i++) {
+        const config = modelConfigs[i];
         try {
-            console.log(`🤖 Trying model ${i + 1}/${models.length}: ${models[i]} (timeout: ${timeout}ms)...`);
+            console.log(`🤖 Trying ${config.provider}: ${config.model} (timeout: ${timeout}ms)...`);
 
-            const apiCall = axios.post('https://openrouter.ai/api/v1/chat/completions', {
-                model: models[i],
-                messages: [
-                    { role: "system", content: instructions || "You are a helpful learning assistant. Be concise and clear." },
-                    { role: "user", content: prompt }
-                ],
-                temperature: 0.4, // Balanced temperature for detailed responses
-                max_tokens: 4000, // Increased for detailed learning content
-                top_p: 0.9
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${process.env.API_KEY}`,
-                    'Content-Type': 'application/json',
-                    'HTTP-Referer': 'http://localhost:5000',
-                    'X-Title': 'Quizlyst AI'
-                },
-                timeout: timeout - 2000 // Leave 2s buffer for processing
-            });
+            let apiCall;
+
+            if (config.provider === "OpenRouter") {
+                // OpenRouter API call
+                apiCall = axios.post(config.endpoint, {
+                    model: config.model,
+                    messages: [
+                        { role: "system", content: instructions || "You are a helpful learning assistant. Be concise and clear." },
+                        { role: "user", content: prompt }
+                    ],
+                    temperature: 0.4,
+                    max_tokens: 4000,
+                    top_p: 0.9
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${config.apiKey}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': 'http://localhost:5000',
+                        'X-Title': 'Quizlyst AI'
+                    },
+                    timeout: timeout - 2000
+                });
+            } else if (config.provider === "Cohere") {
+                // Cohere API call
+                apiCall = axios.post(config.endpoint, {
+                    model: config.model,
+                    message: prompt,
+                    preamble: instructions || "You are a helpful learning assistant. Be concise and clear.",
+                    temperature: 0.4,
+                    max_tokens: 4000
+                }, {
+                    headers: {
+                        'Authorization': `Bearer ${config.apiKey}`,
+                        'Content-Type': 'application/json'
+                    },
+                    timeout: timeout - 2000
+                });
+            }
 
             const response = await Promise.race([
                 apiCall,
@@ -320,11 +349,17 @@ const callAIApi = async (prompt, instructions = '', timeout = 30000) => {
                 )
             ]);
 
-            console.log(`✅ AI API response received from ${models[i]}`);
-            return response.data.choices[0].message.content;
+            console.log(`✅ AI API response received from ${config.provider} (${config.model})`);
+
+            // Handle different response formats
+            if (config.provider === "OpenRouter") {
+                return response.data.choices[0].message.content;
+            } else if (config.provider === "Cohere") {
+                return response.data.text;
+            }
 
         } catch (error) {
-            console.error(`❌ Model ${models[i]} failed:`, error.response?.data?.error?.message || error.message);
+            console.error(`❌ ${config.provider} (${config.model}) failed:`, error.response?.data?.error?.message || error.message);
 
             // Log more details for debugging
             if (error.response) {
@@ -333,21 +368,24 @@ const callAIApi = async (prompt, instructions = '', timeout = 30000) => {
             }
 
             // If this is the last model, throw the error
-            if (i === models.length - 1) {
+            if (i === modelConfigs.length - 1) {
                 if (error.message.includes('timeout')) {
                     throw new Error('AI processing is taking too long. Please try with shorter content.');
                 }
                 if (error.response?.status === 401) {
-                    throw new Error('API authentication failed. Please check your API key.');
+                    throw new Error('API authentication failed. Please check your API keys.');
                 }
                 if (error.response?.status === 429) {
                     throw new Error('API rate limit exceeded. Please try again later.');
+                }
+                if (error.response?.status === 503) {
+                    throw new Error('AI model is currently overloaded. Please try again in a few minutes.');
                 }
                 throw new Error(`All AI models are currently unavailable: ${error.message}`);
             }
 
             // Otherwise, continue to next model
-            console.log(`🔄 Trying next model...`);
+            console.log(`🔄 Trying fallback model...`);
         }
     }
 };
