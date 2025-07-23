@@ -47,9 +47,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const processingSection = document.getElementById('processingSection');
         const notesSection = document.getElementById('notesSection');
-        
+
         processingSection.classList.remove('hidden');
-        updateProcessingMessage('Extracting content...');
+        animateContentProcessingSteps();
         showTimeoutWarning();
 
         try {
@@ -80,6 +80,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             if (response.ok) {
+                // Clear content processing animation
+                if (window.contentProcessingInterval) {
+                    clearInterval(window.contentProcessingInterval);
+                }
+
                 // Display notes
                 displayNotes(data.notes, data.summary);
                 processingSection.classList.add('hidden');
@@ -112,6 +117,11 @@ This might be a deployment issue. Please try:
 Technical details: ${error.message}`;
             }
 
+            // Clear content processing animation
+            if (window.contentProcessingInterval) {
+                clearInterval(window.contentProcessingInterval);
+            }
+
             alert(errorMessage);
             processingSection.classList.add('hidden');
         }
@@ -131,7 +141,7 @@ Technical details: ${error.message}`;
         const notesSection = document.getElementById('notesSection');
 
         processingSection.classList.remove('hidden');
-        updateProcessingMessage(`Processing ${files.length} file(s)...`);
+        animateContentProcessingSteps();
         showTimeoutWarning();
 
         try {
@@ -175,6 +185,11 @@ Technical details: ${error.message}`;
                 `Combined summary of ${files.length} files:\n\n${allSummaries.join('\n\n')}` :
                 allSummaries[0];
 
+            // Clear content processing animation
+            if (window.contentProcessingInterval) {
+                clearInterval(window.contentProcessingInterval);
+            }
+
             displayNotes(allNotes, combinedSummary);
             processingSection.classList.add('hidden');
             notesSection.classList.remove('hidden');
@@ -183,6 +198,12 @@ Technical details: ${error.message}`;
 
         } catch (error) {
             console.error('Error:', error);
+
+            // Clear content processing animation
+            if (window.contentProcessingInterval) {
+                clearInterval(window.contentProcessingInterval);
+            }
+
             alert('Error processing files: ' + error.message);
             processingSection.classList.add('hidden');
         }
@@ -215,6 +236,7 @@ Technical details: ${error.message}`;
 
         const processingSection = document.getElementById('processingSection');
         processingSection.classList.remove('hidden');
+        animateContentProcessingSteps();
         
         try {
             // Simulate API call to regenerate notes
@@ -229,6 +251,11 @@ Technical details: ${error.message}`;
             const data = await response.json();
             
             if (response.ok) {
+                // Clear content processing animation
+                if (window.contentProcessingInterval) {
+                    clearInterval(window.contentProcessingInterval);
+                }
+
                 displayNotes(data.notes, data.summary);
                 processingSection.classList.add('hidden');
             } else {
@@ -236,6 +263,12 @@ Technical details: ${error.message}`;
             }
         } catch (error) {
             console.error('Error:', error);
+
+            // Clear content processing animation
+            if (window.contentProcessingInterval) {
+                clearInterval(window.contentProcessingInterval);
+            }
+
             alert('Error regenerating notes: ' + error.message);
             processingSection.classList.add('hidden');
         }
@@ -459,8 +492,33 @@ Technical details: ${error.message}`;
 
     // Helper functions
     function displayNotes(notes, summary) {
-        document.getElementById('notesOutput').innerHTML = formatNotes(notes);
-        document.getElementById('summaryOutput').innerHTML = formatSummary(summary);
+        const formattedNotes = formatNotes(notes);
+        const formattedSummary = formatSummary(summary);
+
+        document.getElementById('notesOutput').innerHTML = formattedNotes;
+        document.getElementById('summaryOutput').innerHTML = formattedSummary;
+
+        // Store original content for translation
+        if (window.translationState) {
+            window.translationState.notes.original = formattedNotes;
+            window.translationState.summary.original = formattedSummary;
+
+            // Reset translation states
+            window.translationState.notes.currentLanguage = 'en';
+            window.translationState.summary.currentLanguage = 'en';
+
+            // Reset language selectors
+            const notesSelect = document.getElementById('notesLanguageSelect');
+            if (notesSelect) notesSelect.value = 'en';
+
+            // Update language indicators
+            updateLanguageIndicator('notes', 'en', 'English (Original)');
+            updateLanguageIndicator('summary', 'en', 'English (Original)');
+
+            // Show original content
+            showOriginalNotes();
+            showOriginalSummary();
+        }
     }
 
     function formatNotes(notes) {
@@ -591,6 +649,16 @@ Technical details: ${error.message}`;
             quizContainer.appendChild(questionElement);
         });
 
+        // Store original quiz for translation
+        if (window.translationState) {
+            window.translationState.quiz.original = quiz;
+            window.translationState.quiz.currentLanguage = 'en';
+
+            // Reset quiz language selector
+            const quizSelect = document.getElementById('quizLanguageSelect');
+            if (quizSelect) quizSelect.value = 'en';
+        }
+
         document.getElementById('quizResults').classList.add('hidden');
 
         // Scroll to quiz
@@ -663,6 +731,9 @@ Technical details: ${error.message}`;
             window.resultsChartInstance.destroy();
         }
 
+        // Check if mobile device
+        const isMobile = window.innerWidth <= 768;
+
         window.resultsChartInstance = new Chart(ctx, {
             type: 'doughnut',
             data: {
@@ -674,24 +745,43 @@ Technical details: ${error.message}`;
                         '#ef4444'
                     ],
                     borderWidth: 0,
-                    cutout: '70%'
+                    cutout: isMobile ? '65%' : '70%'
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                devicePixelRatio: window.devicePixelRatio || 1,
                 plugins: {
                     legend: {
                         position: 'bottom',
                         labels: {
-                            padding: 20,
+                            padding: isMobile ? 10 : 20,
                             usePointStyle: true,
+                            font: {
+                                size: isMobile ? 11 : 12
+                            },
                             color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary')
                         }
+                    }
+                },
+                layout: {
+                    padding: {
+                        top: isMobile ? 5 : 10,
+                        bottom: isMobile ? 5 : 10,
+                        left: isMobile ? 5 : 10,
+                        right: isMobile ? 5 : 10
                     }
                 }
             }
         });
+
+        // Force resize after creation for mobile
+        if (isMobile) {
+            setTimeout(() => {
+                window.resultsChartInstance.resize();
+            }, 100);
+        }
     }
 
     function displayDetailedResults(results) {
@@ -723,11 +813,62 @@ Technical details: ${error.message}`;
 
     // Helper function to update processing message
     function updateProcessingMessage(message) {
-        const processingSection = document.getElementById('processingSection');
-        const messageElement = processingSection.querySelector('p');
-        if (messageElement) {
-            messageElement.textContent = message;
+        const processingText = document.getElementById('processingText');
+        if (processingText) {
+            processingText.textContent = message;
         }
+    }
+
+    // Enhanced processing steps animation for content processing
+    function animateContentProcessingSteps() {
+        const steps = ['contentStep1', 'contentStep2', 'contentStep3'];
+        const texts = [
+            'Extracting content...',
+            'AI analysis...',
+            'Generating notes...'
+        ];
+
+        let currentStep = 0;
+
+        // Reset all steps
+        steps.forEach(stepId => {
+            const step = document.getElementById(stepId);
+            if (step) {
+                step.classList.remove('active', 'completed');
+            }
+        });
+
+        // Start with first step
+        const firstStep = document.getElementById('contentStep1');
+        if (firstStep) {
+            firstStep.classList.add('active');
+        }
+        updateProcessingMessage(texts[0]);
+
+        const interval = setInterval(() => {
+            if (currentStep < steps.length - 1) {
+                // Mark current step as completed
+                const currentStepElement = document.getElementById(steps[currentStep]);
+                if (currentStepElement) {
+                    currentStepElement.classList.remove('active');
+                    currentStepElement.classList.add('completed');
+                }
+
+                // Move to next step
+                currentStep++;
+                const nextStepElement = document.getElementById(steps[currentStep]);
+                if (nextStepElement) {
+                    nextStepElement.classList.add('active');
+                }
+                updateProcessingMessage(texts[currentStep]);
+            } else {
+                // All steps completed, clear interval
+                clearInterval(interval);
+            }
+        }, 2000); // Change step every 2 seconds
+
+        // Store interval reference for cleanup
+        window.contentProcessingInterval = interval;
     }
 
     // Add timeout warning for long operations
@@ -774,14 +915,8 @@ Technical details: ${error.message}`;
     }
 
     function updateThemeIcon(theme) {
-        const themeToggle = document.getElementById('themeToggle');
-        const icon = themeToggle.querySelector('i');
-
-        if (theme === 'dark') {
-            icon.className = 'fas fa-sun';
-        } else {
-            icon.className = 'fas fa-moon';
-        }
+        // The new theme toggle uses CSS transitions and data-theme attribute
+        // No need to manually update icons as they're handled by CSS
     }
 
     // Tab switching functionality
@@ -1005,4 +1140,944 @@ Technical details: ${error.message}`;
     // Initialize all enhanced features
     initializeTabs();
     initializeFileUpload();
+
+    // Handle window resize for chart responsiveness
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(function() {
+            if (window.resultsChartInstance) {
+                window.resultsChartInstance.resize();
+            }
+        }, 250);
+    });
+
+    // Translation functionality
+    initializeTranslation();
 });
+
+// Translation Management
+function initializeTranslation() {
+    // Enhanced language data with flags and more languages
+    const languages = [
+        { code: 'en', name: 'English (Original)', flag: '🇺🇸', native: 'English' },
+        { code: 'ur', name: 'Urdu', flag: '🇵🇰', native: 'اردو' },
+        { code: 'hi', name: 'Hindi', flag: '🇮🇳', native: 'हिन्दी' },
+        { code: 'ar', name: 'Arabic', flag: '🇸🇦', native: 'العربية' },
+        { code: 'zh', name: 'Chinese', flag: '🇨🇳', native: '中文' },
+        { code: 'es', name: 'Spanish', flag: '🇪🇸', native: 'Español' },
+        { code: 'fr', name: 'French', flag: '🇫🇷', native: 'Français' },
+        { code: 'de', name: 'German', flag: '🇩🇪', native: 'Deutsch' },
+        { code: 'it', name: 'Italian', flag: '🇮🇹', native: 'Italiano' },
+        { code: 'pt', name: 'Portuguese', flag: '🇵🇹', native: 'Português' },
+        { code: 'ru', name: 'Russian', flag: '🇷🇺', native: 'Русский' },
+        { code: 'ja', name: 'Japanese', flag: '🇯🇵', native: '日本語' },
+        { code: 'ko', name: 'Korean', flag: '🇰🇷', native: '한국어' },
+        { code: 'tr', name: 'Turkish', flag: '🇹🇷', native: 'Türkçe' },
+        { code: 'nl', name: 'Dutch', flag: '🇳🇱', native: 'Nederlands' },
+        { code: 'sv', name: 'Swedish', flag: '🇸🇪', native: 'Svenska' },
+        { code: 'da', name: 'Danish', flag: '🇩🇰', native: 'Dansk' },
+        { code: 'no', name: 'Norwegian', flag: '🇳🇴', native: 'Norsk' },
+        { code: 'fi', name: 'Finnish', flag: '🇫🇮', native: 'Suomi' },
+        { code: 'pl', name: 'Polish', flag: '🇵🇱', native: 'Polski' },
+        { code: 'cs', name: 'Czech', flag: '🇨🇿', native: 'Čeština' },
+        { code: 'sk', name: 'Slovak', flag: '🇸🇰', native: 'Slovenčina' },
+        { code: 'hu', name: 'Hungarian', flag: '🇭🇺', native: 'Magyar' },
+        { code: 'ro', name: 'Romanian', flag: '🇷🇴', native: 'Română' },
+        { code: 'bg', name: 'Bulgarian', flag: '🇧🇬', native: 'Български' },
+        { code: 'hr', name: 'Croatian', flag: '🇭🇷', native: 'Hrvatski' },
+        { code: 'sr', name: 'Serbian', flag: '🇷🇸', native: 'Српски' },
+        { code: 'sl', name: 'Slovenian', flag: '🇸🇮', native: 'Slovenščina' },
+        { code: 'et', name: 'Estonian', flag: '🇪🇪', native: 'Eesti' },
+        { code: 'lv', name: 'Latvian', flag: '🇱🇻', native: 'Latviešu' },
+        { code: 'lt', name: 'Lithuanian', flag: '🇱🇹', native: 'Lietuvių' },
+        { code: 'el', name: 'Greek', flag: '🇬🇷', native: 'Ελληνικά' },
+        { code: 'he', name: 'Hebrew', flag: '🇮🇱', native: 'עברית' },
+        { code: 'th', name: 'Thai', flag: '🇹🇭', native: 'ไทย' },
+        { code: 'vi', name: 'Vietnamese', flag: '🇻🇳', native: 'Tiếng Việt' },
+        { code: 'id', name: 'Indonesian', flag: '🇮🇩', native: 'Bahasa Indonesia' },
+        { code: 'ms', name: 'Malay', flag: '🇲🇾', native: 'Bahasa Melayu' },
+        { code: 'tl', name: 'Filipino', flag: '🇵🇭', native: 'Filipino' },
+        { code: 'sw', name: 'Swahili', flag: '🇰🇪', native: 'Kiswahili' },
+        { code: 'am', name: 'Amharic', flag: '🇪🇹', native: 'አማርኛ' },
+        { code: 'bn', name: 'Bengali', flag: '🇧🇩', native: 'বাংলা' },
+        { code: 'ta', name: 'Tamil', flag: '🇮🇳', native: 'தமிழ்' },
+        { code: 'te', name: 'Telugu', flag: '🇮🇳', native: 'తెలుగు' },
+        { code: 'ml', name: 'Malayalam', flag: '🇮🇳', native: 'മലയാളം' },
+        { code: 'kn', name: 'Kannada', flag: '🇮🇳', native: 'ಕನ್ನಡ' },
+        { code: 'gu', name: 'Gujarati', flag: '🇮🇳', native: 'ગુજરાતી' },
+        { code: 'pa', name: 'Punjabi', flag: '🇮🇳', native: 'ਪੰਜਾਬੀ' },
+        { code: 'mr', name: 'Marathi', flag: '🇮🇳', native: 'मराठी' },
+        { code: 'ne', name: 'Nepali', flag: '🇳🇵', native: 'नेपाली' },
+        { code: 'si', name: 'Sinhala', flag: '🇱🇰', native: 'සිංහල' },
+        { code: 'my', name: 'Myanmar', flag: '🇲🇲', native: 'မြန်မာ' },
+        { code: 'km', name: 'Khmer', flag: '🇰🇭', native: 'ខ្មែរ' },
+        { code: 'lo', name: 'Lao', flag: '🇱🇦', native: 'ລາວ' }
+    ];
+
+    // Create language name mapping for backward compatibility
+    const languageNames = {};
+    languages.forEach(lang => {
+        languageNames[lang.code] = lang.name;
+    });
+
+    // Initialize language dropdowns
+    initializeLanguageDropdown('notes', languages);
+    initializeLanguageDropdown('quiz', languages);
+
+    const translateNotesBtn = document.getElementById('translateNotesBtn');
+    const translateQuizBtn = document.getElementById('translateQuizBtn');
+
+    // Store languages globally for access
+    window.translationLanguages = languages;
+    window.languageNames = languageNames;
+
+    // Translation state
+    window.translationState = {
+        notes: {
+            original: '',
+            translated: {},
+            currentLanguage: 'en'
+        },
+        summary: {
+            original: '',
+            translated: {},
+            currentLanguage: 'en'
+        },
+        quiz: {
+            original: null,
+            translated: {},
+            currentLanguage: 'en'
+        }
+    };
+
+    // Translation button event listeners
+    translateNotesBtn.addEventListener('click', async function() {
+        const currentLang = getCurrentLanguage('notes');
+        console.log('Translate button clicked, current language:', currentLang);
+
+        if (currentLang === 'en') {
+            console.log('Language is English, no translation needed');
+            return;
+        }
+
+        // Test translation API first with a simple phrase
+        try {
+            console.log('Testing translation API...');
+            const testResult = await translateText('Hello world', currentLang);
+            console.log('Test translation result:', testResult);
+
+            if (testResult === 'Hello world') {
+                showNotification('Translation service is not responding. Please try again later.', 'warning');
+                return;
+            }
+        } catch (error) {
+            console.error('Translation test failed:', error);
+            showNotification('Translation service is unavailable. Please try again later.', 'error');
+            return;
+        }
+
+        // Translate both notes and summary
+        try {
+            console.log('Starting translation to:', currentLang, languageNames[currentLang]);
+            await translateContent('notes', currentLang, languageNames[currentLang]);
+            await translateContent('summary', currentLang, languageNames[currentLang]);
+        } catch (error) {
+            console.error('Translation failed:', error);
+            showNotification('Translation failed: ' + error.message, 'error');
+        }
+    });
+
+    translateQuizBtn.addEventListener('click', async function() {
+        const currentLang = getCurrentLanguage('quiz');
+        if (currentLang === 'en') return;
+
+        await translateQuiz(currentLang, languageNames[currentLang]);
+    });
+}
+
+// Helper function to get current selected language
+function getCurrentLanguage(type) {
+    const selected = document.getElementById(`${type}LanguageSelected`);
+    const languageName = selected.querySelector('.language-name').textContent;
+
+    // Find language code by name
+    const language = window.translationLanguages.find(lang => lang.name === languageName);
+    return language ? language.code : 'en';
+}
+
+// Initialize language dropdown with search functionality
+function initializeLanguageDropdown(type, languages) {
+    const dropdown = document.getElementById(`${type}LanguageDropdown`);
+    const selected = document.getElementById(`${type}LanguageSelected`);
+    const options = document.getElementById(`${type}LanguageOptions`);
+    const search = document.getElementById(`${type}LanguageSearch`);
+    const list = document.getElementById(`${type}LanguageList`);
+
+    let currentLanguage = 'en';
+
+    // Populate language list
+    function populateLanguages(filteredLanguages = languages) {
+        list.innerHTML = '';
+        filteredLanguages.forEach(lang => {
+            const option = document.createElement('div');
+            option.className = `language-option ${lang.code === currentLanguage ? 'selected' : ''}`;
+            option.dataset.code = lang.code;
+            option.innerHTML = `
+                <span class="flag">${lang.flag}</span>
+                <span class="language-name">${lang.name}</span>
+                <span class="language-code">${lang.code}</span>
+            `;
+
+            option.addEventListener('click', () => {
+                selectLanguage(lang);
+                closeDropdown();
+            });
+
+            list.appendChild(option);
+        });
+    }
+
+    // Select language
+    function selectLanguage(lang) {
+        currentLanguage = lang.code;
+        selected.innerHTML = `
+            <span class="flag">${lang.flag}</span>
+            <span class="language-name">${lang.name}</span>
+            <i class="fas fa-chevron-down"></i>
+        `;
+
+        // Update translate button state
+        const translateBtn = document.getElementById(`translate${type.charAt(0).toUpperCase() + type.slice(1)}Btn`);
+        translateBtn.disabled = lang.code === 'en';
+
+        // Handle language change
+        handleLanguageChange(type, lang.code, lang.name);
+
+        // Update selected option in list
+        list.querySelectorAll('.language-option').forEach(opt => {
+            opt.classList.toggle('selected', opt.dataset.code === lang.code);
+        });
+    }
+
+    // Open/close dropdown
+    function toggleDropdown() {
+        dropdown.classList.toggle('open');
+        if (dropdown.classList.contains('open')) {
+            search.focus();
+        }
+    }
+
+    function closeDropdown() {
+        dropdown.classList.remove('open');
+        search.value = '';
+        populateLanguages();
+    }
+
+    // Search functionality
+    search.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        const filtered = languages.filter(lang =>
+            lang.name.toLowerCase().includes(query) ||
+            lang.native.toLowerCase().includes(query) ||
+            lang.code.toLowerCase().includes(query)
+        );
+        populateLanguages(filtered);
+    });
+
+    // Event listeners
+    selected.addEventListener('click', toggleDropdown);
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target)) {
+            closeDropdown();
+        }
+    });
+
+    // Initialize
+    populateLanguages();
+}
+
+// Handle language change
+function handleLanguageChange(type, languageCode, languageName) {
+    if (languageCode === 'en') {
+        if (type === 'notes') {
+            showOriginalNotes();
+            showOriginalSummary();
+        } else if (type === 'quiz') {
+            showOriginalQuiz();
+        }
+    } else {
+        // Show translated content if available
+        if (type === 'notes') {
+            if (window.translationState.notes.translated[languageCode]) {
+                showTranslatedNotes(languageCode);
+            } else {
+                showOriginalNotes();
+            }
+
+            if (window.translationState.summary.translated[languageCode]) {
+                showTranslatedSummary(languageCode);
+            } else {
+                showOriginalSummary();
+            }
+        } else if (type === 'quiz') {
+            if (window.translationState.quiz.translated[languageCode]) {
+                showTranslatedQuiz(languageCode);
+            } else {
+                showOriginalQuiz();
+            }
+        }
+    }
+
+    // Update language indicators
+    if (type === 'notes') {
+        updateLanguageIndicator('notes', languageCode, languageName);
+        updateLanguageIndicator('summary', languageCode, languageName);
+    }
+}
+
+// Translation API function with multiple fallbacks
+async function translateText(text, targetLang) {
+    // Skip translation for very short text or single characters
+    if (!text || text.trim().length < 2) {
+        return text;
+    }
+
+    try {
+        console.log(`Translating: "${text.substring(0, 50)}..." to ${targetLang}`);
+
+        // Try Google Translate (most reliable)
+        const googleResult = await tryGoogleTranslation(text, targetLang);
+        if (googleResult) {
+            console.log('Translation successful via Google Translate');
+            return googleResult;
+        }
+
+        // Try MyMemory API as fallback
+        const result = await tryMyMemoryTranslation(text, targetLang);
+        if (result) {
+            console.log('Translation successful via MyMemory');
+            return result;
+        }
+
+        // Try LibreTranslate as last resort
+        const libreResult = await tryLibreTranslation(text, targetLang);
+        if (libreResult) {
+            console.log('Translation successful via LibreTranslate');
+            return libreResult;
+        }
+
+        // Try basic offline translation for common words
+        const offlineResult = tryOfflineTranslation(text, targetLang);
+        if (offlineResult && offlineResult !== text) {
+            console.log('Translation successful via offline dictionary');
+            return offlineResult;
+        }
+
+        // If all APIs fail, return original text
+        console.warn('All translation APIs failed, returning original text');
+        return text;
+
+    } catch (error) {
+        console.error('Translation error:', error);
+        return text; // Return original text instead of error message
+    }
+}
+
+// Google Translate (free, no API key needed)
+async function tryGoogleTranslation(text, targetLang) {
+    try {
+        // Using Google Translate's public endpoint
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Google Translate returns an array structure
+        if (data && data[0] && data[0][0] && data[0][0][0]) {
+            const translated = data[0][0][0].trim();
+            if (translated && translated !== text) {
+                return translated;
+            }
+        }
+
+        return null;
+    } catch (error) {
+        console.warn('Google Translate failed:', error);
+        return null;
+    }
+}
+
+// MyMemory API translation
+async function tryMyMemoryTranslation(text, targetLang) {
+    try {
+        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|${targetLang}`;
+
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
+            const translated = data.responseData.translatedText.trim();
+            // Check if translation is meaningful (not just returning the original)
+            if (translated && translated !== text && !translated.includes('MYMEMORY WARNING')) {
+                return translated;
+            }
+        }
+
+        return null;
+    } catch (error) {
+        console.warn('MyMemory translation failed:', error);
+        return null;
+    }
+}
+
+// LibreTranslate API translation (free, self-hosted instances available)
+async function tryLibreTranslation(text, targetLang) {
+    try {
+        // Map language codes for LibreTranslate compatibility
+        const langMap = {
+            'hi': 'hi',    // Hindi
+            'ur': 'ur',    // Urdu (if supported)
+            'es': 'es',    // Spanish
+            'fr': 'fr',    // French
+            'de': 'de',    // German
+            'it': 'it',    // Italian
+            'pt': 'pt',    // Portuguese
+            'ru': 'ru',    // Russian
+            'ja': 'ja',    // Japanese
+            'ko': 'ko',    // Korean
+            'zh': 'zh',    // Chinese
+            'ar': 'ar',    // Arabic
+        };
+
+        const mappedLang = langMap[targetLang] || targetLang;
+
+        // Using a public LibreTranslate instance
+        const url = 'https://libretranslate.de/translate';
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                q: text,
+                source: 'en',
+                target: mappedLang,
+                format: 'text'
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.translatedText && data.translatedText.trim()) {
+            return data.translatedText.trim();
+        }
+
+        return null;
+    } catch (error) {
+        console.warn('LibreTranslate translation failed:', error);
+        return null;
+    }
+}
+
+// Basic offline translation for common words (fallback)
+function tryOfflineTranslation(text, targetLang) {
+    // Basic dictionary for common educational terms
+    const dictionaries = {
+        'ur': { // Urdu
+            'Introduction': 'تعارف',
+            'Summary': 'خلاصہ',
+            'Notes': 'نوٹس',
+            'Quiz': 'کوئز',
+            'Question': 'سوال',
+            'Answer': 'جواب',
+            'True': 'درست',
+            'False': 'غلط',
+            'Correct': 'صحیح',
+            'Incorrect': 'غلط',
+            'Score': 'اسکور',
+            'Result': 'نتیجہ',
+            'Chapter': 'باب',
+            'Topic': 'موضوع',
+            'Content': 'مواد',
+            'Learning': 'سیکھنا',
+            'Study': 'مطالعہ',
+            'Education': 'تعلیم',
+            'Knowledge': 'علم',
+            'Information': 'معلومات'
+        },
+        'hi': { // Hindi
+            'Introduction': 'परिचय',
+            'Summary': 'सारांश',
+            'Notes': 'नोट्स',
+            'Quiz': 'प्रश्नोत्तरी',
+            'Question': 'प्रश्न',
+            'Answer': 'उत्तर',
+            'True': 'सत्य',
+            'False': 'असत्य',
+            'Correct': 'सही',
+            'Incorrect': 'गलत',
+            'Score': 'अंक',
+            'Result': 'परिणाम',
+            'Chapter': 'अध्याय',
+            'Topic': 'विषय',
+            'Content': 'सामग्री',
+            'Learning': 'सीखना',
+            'Study': 'अध्ययन',
+            'Education': 'शिक्षा',
+            'Knowledge': 'ज्ञान',
+            'Information': 'जानकारी'
+        }
+    };
+
+    const dictionary = dictionaries[targetLang];
+    if (!dictionary) {
+        return null;
+    }
+
+    // Check if the text is a single word in our dictionary
+    const trimmedText = text.trim();
+    if (dictionary[trimmedText]) {
+        return dictionary[trimmedText];
+    }
+
+    // Try to translate individual words in the text
+    const words = trimmedText.split(/\s+/);
+    if (words.length <= 3) { // Only for short phrases
+        const translatedWords = words.map(word => {
+            const cleanWord = word.replace(/[^\w]/g, ''); // Remove punctuation
+            return dictionary[cleanWord] || word;
+        });
+
+        const result = translatedWords.join(' ');
+        if (result !== trimmedText) {
+            return result;
+        }
+    }
+
+    return null;
+}
+
+// Translate content (notes/summary) with improved formatting preservation
+async function translateContent(type, targetLang, languageName) {
+    console.log(`Starting translation for ${type} to ${targetLang} (${languageName})`);
+
+    const translateBtn = document.getElementById('translateNotesBtn'); // Use notes button for both
+    const originalContent = type === 'notes' ?
+        document.getElementById('notesOutput').innerHTML :
+        document.getElementById('summaryOutput').innerHTML;
+
+    console.log(`Original content length: ${originalContent.length}`);
+
+    if (!originalContent.trim()) {
+        console.log('No content to translate');
+        showNotification('No content to translate', 'warning');
+        return;
+    }
+
+    // Show loading state
+    translateBtn.classList.add('loading');
+    translateBtn.disabled = true;
+
+    // Show progress notification
+    showNotification(`Translating ${type} to ${languageName}...`, 'info');
+
+    try {
+        console.log('Starting HTML content translation...');
+        // Parse HTML content and preserve structure
+        const translatedHTML = await translateHTMLContent(originalContent, targetLang);
+
+        console.log(`Translation completed, storing result for ${type}`);
+        // Store translation
+        window.translationState[type].translated[targetLang] = translatedHTML;
+        window.translationState[type].currentLanguage = targetLang;
+
+        // Show translated content
+        if (type === 'notes') {
+            showTranslatedNotes(targetLang);
+        } else {
+            showTranslatedSummary(targetLang);
+        }
+
+        updateLanguageIndicator(type, targetLang, languageName);
+        showNotification(`${type.charAt(0).toUpperCase() + type.slice(1)} translated to ${languageName} successfully!`, 'success');
+
+    } catch (error) {
+        console.error('Translation failed:', error);
+        showNotification(`Translation to ${languageName} failed. Please try again.`, 'error');
+
+        // Reset to original language
+        updateLanguageIndicator(type, 'en', 'English (Original)');
+    } finally {
+        translateBtn.classList.remove('loading');
+        translateBtn.disabled = false;
+    }
+}
+
+// Enhanced HTML content translation with structure preservation
+async function translateHTMLContent(htmlContent, targetLang) {
+    console.log('Parsing HTML content for translation...');
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(`<div>${htmlContent}</div>`, 'text/html');
+    const container = doc.querySelector('div');
+
+    console.log('Starting element translation...');
+    // Process each element recursively
+    await translateElement(container, targetLang);
+
+    console.log('HTML translation completed');
+    return container.innerHTML;
+}
+
+async function translateElement(element, targetLang) {
+    let translatedCount = 0;
+    const textNodes = [];
+
+    // Collect all text nodes first
+    function collectTextNodes(node) {
+        for (const child of Array.from(node.childNodes)) {
+            if (child.nodeType === Node.TEXT_NODE) {
+                const text = child.textContent.trim();
+                if (text && text.length > 2) {
+                    textNodes.push(child);
+                }
+            } else if (child.nodeType === Node.ELEMENT_NODE) {
+                collectTextNodes(child);
+            }
+        }
+    }
+
+    collectTextNodes(element);
+    console.log(`Found ${textNodes.length} text nodes to translate`);
+
+    // Batch translate for better performance
+    const batchSize = 5; // Translate 5 texts simultaneously
+
+    for (let i = 0; i < textNodes.length; i += batchSize) {
+        const batch = textNodes.slice(i, i + batchSize);
+        console.log(`Translating batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(textNodes.length/batchSize)}`);
+
+        // Translate batch in parallel
+        const promises = batch.map(async (node) => {
+            const text = node.textContent.trim();
+            try {
+                const translatedText = await translateText(text, targetLang);
+                if (translatedText && translatedText !== text) {
+                    node.textContent = translatedText;
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.warn('Failed to translate text:', text, error);
+                return false;
+            }
+        });
+
+        const results = await Promise.all(promises);
+        translatedCount += results.filter(Boolean).length;
+
+        // Very short delay between batches
+        if (i + batchSize < textNodes.length) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+    }
+
+    console.log(`Translation completed: ${translatedCount}/${textNodes.length} nodes translated`);
+}
+
+// Helper functions for translation
+function splitTextIntoChunks(text, maxLength) {
+    const chunks = [];
+    const sentences = text.split(/[.!?]+/);
+    let currentChunk = '';
+
+    for (const sentence of sentences) {
+        if ((currentChunk + sentence).length > maxLength && currentChunk) {
+            chunks.push(currentChunk.trim());
+            currentChunk = sentence;
+        } else {
+            currentChunk += sentence + '.';
+        }
+    }
+
+    if (currentChunk.trim()) {
+        chunks.push(currentChunk.trim());
+    }
+
+    return chunks.filter(chunk => chunk.length > 0);
+}
+
+function formatTranslatedContent(text) {
+    // Convert plain text back to formatted HTML
+    return text.split('\n').map(line => {
+        line = line.trim();
+        if (!line) return '';
+
+        // Handle bullet points
+        if (line.startsWith('•') || line.startsWith('-')) {
+            return `<li>${line.substring(1).trim()}</li>`;
+        }
+
+        // Handle numbered lists
+        if (/^\d+\./.test(line)) {
+            return `<li>${line.replace(/^\d+\.\s*/, '')}</li>`;
+        }
+
+        // Regular paragraphs
+        return `<p>${line}</p>`;
+    }).join('');
+}
+
+function showOriginalNotes() {
+    const container = document.querySelector('#notesTab .content-container');
+    const translatedSection = document.getElementById('notesTranslatedSection');
+
+    container.classList.remove('has-translation');
+    translatedSection.classList.add('hidden');
+    window.translationState.notes.currentLanguage = 'en';
+}
+
+function showTranslatedNotes(language) {
+    const translatedContent = window.translationState.notes.translated[language];
+    if (translatedContent) {
+        const container = document.querySelector('#notesTab .content-container');
+        const translatedSection = document.getElementById('notesTranslatedSection');
+        const translatedLabel = document.getElementById('notesTranslatedLabel');
+        const languageInfo = window.translationLanguages.find(lang => lang.code === language);
+
+        document.getElementById('notesOutputTranslated').innerHTML = translatedContent;
+        translatedLabel.textContent = `Translated (${languageInfo ? languageInfo.name : language})`;
+
+        container.classList.add('has-translation');
+        translatedSection.classList.remove('hidden');
+        window.translationState.notes.currentLanguage = language;
+    }
+}
+
+function showOriginalSummary() {
+    const container = document.querySelector('#summaryTab .content-container');
+    const translatedSection = document.getElementById('summaryTranslatedSection');
+
+    container.classList.remove('has-translation');
+    translatedSection.classList.add('hidden');
+    window.translationState.summary.currentLanguage = 'en';
+}
+
+function showTranslatedSummary(language) {
+    const translatedContent = window.translationState.summary.translated[language];
+    if (translatedContent) {
+        const container = document.querySelector('#summaryTab .content-container');
+        const translatedSection = document.getElementById('summaryTranslatedSection');
+        const translatedLabel = document.getElementById('summaryTranslatedLabel');
+        const languageInfo = window.translationLanguages.find(lang => lang.code === language);
+
+        document.getElementById('summaryOutputTranslated').innerHTML = translatedContent;
+        translatedLabel.textContent = `Translated (${languageInfo ? languageInfo.name : language})`;
+
+        container.classList.add('has-translation');
+        translatedSection.classList.remove('hidden');
+        window.translationState.summary.currentLanguage = language;
+    }
+}
+
+function updateLanguageIndicator(type, language, languageName) {
+    const indicator = document.getElementById(`${type}LanguageIndicator`);
+    if (indicator) {
+        const span = indicator.querySelector('span');
+        span.textContent = languageName;
+
+        if (language !== 'en') {
+            indicator.style.background = 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(118, 75, 162, 0.1))';
+            indicator.style.borderLeft = '3px solid var(--primary-color)';
+        } else {
+            indicator.style.background = 'var(--bg-tertiary)';
+            indicator.style.borderLeft = 'none';
+        }
+    }
+}
+
+// Quiz translation functions
+async function translateQuiz(targetLang, languageName) {
+    const translateBtn = document.getElementById('translateQuizBtn');
+    const currentQuiz = window.currentQuiz;
+
+    if (!currentQuiz || currentQuiz.length === 0) {
+        showNotification('No quiz to translate', 'warning');
+        return;
+    }
+
+    translateBtn.classList.add('loading');
+    translateBtn.disabled = true;
+
+    try {
+        const translatedQuiz = [];
+
+        for (const question of currentQuiz) {
+            const translatedQuestion = {
+                ...question,
+                question: await translateText(question.question, targetLang),
+                options: [],
+                correctAnswer: question.correctAnswer
+            };
+
+            // Translate options
+            for (const option of question.options) {
+                const translatedOption = await translateText(option, targetLang);
+                translatedQuestion.options.push(translatedOption);
+
+                // Update correct answer if this option was the correct one
+                if (option === question.correctAnswer) {
+                    translatedQuestion.correctAnswer = translatedOption;
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+
+            translatedQuiz.push(translatedQuestion);
+            await new Promise(resolve => setTimeout(resolve, 200));
+        }
+
+        // Store translated quiz
+        window.translationState.quiz.translated[targetLang] = translatedQuiz;
+        window.translationState.quiz.currentLanguage = targetLang;
+
+        // Display translated quiz
+        displayTranslatedQuiz(translatedQuiz, targetLang);
+        showNotification(`Quiz translated to ${languageName}`, 'success');
+
+    } catch (error) {
+        console.error('Quiz translation failed:', error);
+        showNotification('Quiz translation failed. Please try again.', 'error');
+
+        // Reset to original language
+        document.getElementById('quizLanguageSelect').value = 'en';
+    } finally {
+        translateBtn.classList.remove('loading');
+        translateBtn.disabled = false;
+    }
+}
+
+function showOriginalQuiz() {
+    if (window.currentQuiz) {
+        displayQuiz(window.currentQuiz, 'medium', window.currentQuiz.length);
+        window.translationState.quiz.currentLanguage = 'en';
+    }
+}
+
+function showTranslatedQuiz(language) {
+    const translatedQuiz = window.translationState.quiz.translated[language];
+    if (translatedQuiz) {
+        displayTranslatedQuiz(translatedQuiz, language);
+        window.translationState.quiz.currentLanguage = language;
+    }
+}
+
+function displayTranslatedQuiz(quiz, language) {
+    const quizContainer = document.getElementById('quizContainer');
+    quizContainer.innerHTML = '';
+
+    quiz.forEach((question, index) => {
+        const questionElement = document.createElement('div');
+        questionElement.className = 'quiz-question';
+        questionElement.innerHTML = `
+            <div class="question-header">
+                <span class="question-number">Question ${index + 1} of ${quiz.length}</span>
+            </div>
+            <h3 class="question-text">${question.question}</h3>
+            <div class="quiz-options-list">
+                ${question.options.map((option, optIndex) => `
+                    <div class="quiz-option-item">
+                        <input type="radio" id="q${index}-${optIndex}" name="q${index}" value="${option}" data-question="${index}">
+                        <label for="q${index}-${optIndex}">
+                            <span class="option-letter">${String.fromCharCode(65 + optIndex)}.</span>
+                            <span class="option-text">${option}</span>
+                        </label>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        quizContainer.appendChild(questionElement);
+    });
+
+    // Update current quiz reference for translated version
+    window.currentQuiz = quiz;
+
+    // Show submit button
+    document.getElementById('submitQuizBtn').classList.remove('hidden');
+}
+
+// Notification system for translation feedback
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.translation-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `translation-notification ${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas ${getNotificationIcon(type)}"></i>
+            <span>${message}</span>
+            <button class="notification-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `;
+
+    // Add to page
+    document.body.appendChild(notification);
+
+    // Add event listener for close button
+    notification.querySelector('.notification-close').addEventListener('click', () => {
+        notification.remove();
+    });
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+
+    // Animate in
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+}
+
+function getNotificationIcon(type) {
+    switch (type) {
+        case 'success': return 'fa-check-circle';
+        case 'error': return 'fa-exclamation-circle';
+        case 'warning': return 'fa-exclamation-triangle';
+        default: return 'fa-info-circle';
+    }
+}
