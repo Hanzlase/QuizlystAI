@@ -10,29 +10,18 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/css/(.*)",
-      "dest": "public/css/$1"
+      "source": "/css/(.*)",
+      "destination": "public/css/$1"
     },
     {
-      "src": "/js/(.*)",
-      "dest": "public/js/$1"
+      "source": "/js/(.*)",
+      "destination": "public/js/$1"
     },
-    {
-      "src": "/(.*)",
-      "dest": "public/home.html"
-    }
-  ],
-  "headers": [
     {
       "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600"
-        }
-      ]
+      "destination": "public/home.html"
     }
   ]
 }
