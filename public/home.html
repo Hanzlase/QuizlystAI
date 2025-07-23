@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quizlyst AI - Dashboard</title>
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="bg-elements">
+        <div class="bg-circle bg-circle-1"></div>
+        <div class="bg-circle bg-circle-2"></div>
+        <div class="bg-circle bg-circle-3"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h1 class="logo">Quizlyst AI</h1>
+            </div>
+
+            <div class="nav-actions">
+                <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="hero-content">
+                    <h1 class="hero-title">Transform Any Content Into <span class="gradient-text">Learning Gold</span></h1>
+                    <p class="hero-subtitle">Upload documents, paste URLs, or share YouTube videos. Our AI creates comprehensive notes, summaries, and quizzes instantly.</p>
+                </div>
+            </div>
+
+            <!-- Content Upload Card -->
+            <div class="upload-card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i class="fas fa-upload"></i>
+                    </div>
+                    <div class="card-title">
+                        <h2>Add Learning Content</h2>
+                        <p>Choose your preferred content source</p>
+                    </div>
+                </div>
+
+                <div class="upload-options">
+                    <div class="upload-option active" data-type="link">
+                        <div class="option-icon">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        <div class="option-content">
+                            <span class="option-title">Web Link</span>
+                            <span class="option-desc">Articles & blogs</span>
+                        </div>
+                        <div class="option-check">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <div class="upload-option" data-type="youtube">
+                        <div class="option-icon youtube">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <div class="option-content">
+                            <span class="option-title">YouTube</span>
+                            <span class="option-desc">Video transcripts</span>
+                        </div>
+                        <div class="option-check">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                    <div class="upload-option" data-type="document">
+                        <div class="option-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="option-content">
+                            <span class="option-title">Documents</span>
+                            <span class="option-desc">PDF, DOCX, TXT</span>
+                        </div>
+                        <div class="option-check">
+                            <i class="fas fa-check"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="upload-form" id="linkForm">
+                    <div class="input-group">
+                        <div class="input-icon">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        <input type="text" id="contentUrl" placeholder="Enter URL (e.g., https://example.com)">
+                    </div>
+                    <div class="url-info" id="urlInfo">
+                        <div class="info-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <small>For YouTube videos: Make sure the video has captions/subtitles enabled for best results</small>
+                    </div>
+                    <button id="analyzeBtn" class="primary-btn">
+                        <i class="fas fa-magic"></i>
+                        Analyze Content
+                    </button>
+                </div>
+
+                <div class="upload-form hidden" id="fileForm">
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <div class="upload-text">
+                            <h3>Drop files here or click to browse</h3>
+                            <p>Supported formats: PDF, DOCX, TXT files (up to 10MB each)</p>
+                        </div>
+                        <input type="file" id="contentFile" accept=".pdf,.docx,.txt" multiple>
+                    </div>
+                    <button id="uploadBtn" class="primary-btn">
+                        <i class="fas fa-upload"></i>
+                        Upload & Process Files
+                    </button>
+                </div>
+            </div>
+
+            <!-- Processing Section -->
+            <div class="processing-card hidden" id="processingSection">
+                <div class="processing-content">
+                    <div class="processing-animation">
+                        <div class="loader-modern">
+                            <div class="loader-circle"></div>
+                            <div class="loader-circle"></div>
+                            <div class="loader-circle"></div>
+                        </div>
+                    </div>
+                    <h3 class="processing-title">Processing your content...</h3>
+                    <p class="processing-subtitle">Our AI is analyzing and creating comprehensive learning materials</p>
+                    <div class="processing-steps">
+                        <div class="step active">
+                            <i class="fas fa-download"></i>
+                            <span>Extracting content</span>
+                        </div>
+                        <div class="step">
+                            <i class="fas fa-brain"></i>
+                            <span>AI analysis</span>
+                        </div>
+                        <div class="step">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Generating notes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div class="notes-card hidden" id="notesSection">
+                <div class="card-header">
+                    <div class="card-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="card-title">
+                        <h2>Learning Materials Ready!</h2>
+                        <p>Your content has been transformed into comprehensive study materials</p>
+                    </div>
+                </div>
+
+                <div class="notes-controls">
+                    <div class="control-group">
+                        <label>Note Style:</label>
+                        <div class="notes-options">
+                            <button class="notes-option active" data-mode="easy">
+                                <i class="fas fa-smile"></i>
+                                Easy Wording
+                            </button>
+                            <button class="notes-option" data-mode="custom">
+                                <i class="fas fa-cog"></i>
+                                Custom Mode
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="custom-options hidden" id="customOptions">
+                    <div class="custom-input-group">
+                        <label for="customInstructions">Custom Instructions:</label>
+                        <textarea id="customInstructions" placeholder="How would you like the notes? (e.g., 'Explain like I'm 5', 'Technical details', etc.)"></textarea>
+                        <button id="regenerateNotes" class="secondary-btn">
+                            <i class="fas fa-sync-alt"></i>
+                            Regenerate Notes
+                        </button>
+                    </div>
+                </div>
+
+                <div class="content-tabs">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" data-tab="notes">
+                            <i class="fas fa-file-alt"></i>
+                            Detailed Notes
+                        </button>
+                        <button class="tab-btn" data-tab="summary">
+                            <i class="fas fa-compress-alt"></i>
+                            Summary
+                        </button>
+                    </div>
+
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="notesTab">
+                            <div class="notes-output" id="notesOutput"></div>
+                        </div>
+                        <div class="tab-pane" id="summaryTab">
+                            <div class="summary-output" id="summaryOutput"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-generation-section">
+                    <div class="section-header">
+                        <div class="section-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="section-title">
+                            <h3>Generate Quiz</h3>
+                            <p>Test your knowledge with AI-generated questions</p>
+                        </div>
+                    </div>
+
+                    <div class="quiz-settings">
+                        <div class="setting-group">
+                            <label>Difficulty Level:</label>
+                            <div class="quiz-options">
+                                <button class="quiz-option active" data-difficulty="easy">
+                                    <i class="fas fa-seedling"></i>
+                                    Easy
+                                </button>
+                                <button class="quiz-option" data-difficulty="medium">
+                                    <i class="fas fa-fire"></i>
+                                    Medium
+                                </button>
+                                <button class="quiz-option" data-difficulty="hard">
+                                    <i class="fas fa-rocket"></i>
+                                    Hard
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <label for="questionCount">Number of Questions:</label>
+                            <div class="question-count-options">
+                                <div class="preset-options">
+                                    <button type="button" class="question-preset active" data-count="5">5</button>
+                                    <button type="button" class="question-preset" data-count="10">10</button>
+                                    <button type="button" class="question-preset" data-count="15">15</button>
+                                    <button type="button" class="question-preset" data-count="20">20</button>
+                                </div>
+                                <div class="custom-count-wrapper">
+                                    <span class="or-text">or</span>
+                                    <input type="number" id="customQuestionCount" placeholder="Custom" min="1" class="custom-count-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button id="generateQuizBtn" class="primary-btn">
+                            <i class="fas fa-magic"></i>
+                            Generate Quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Generation Loading Section -->
+            <div class="processing-card hidden" id="quizLoadingSection">
+                <div class="processing-content">
+                    <div class="processing-header">
+                        <div class="processing-spinner">
+                            <div class="spinner"></div>
+                        </div>
+                        <h2>Generating your quiz...</h2>
+                        <p id="quizLoadingText">Analyzing content and creating questions...</p>
+                    </div>
+
+                    <div class="processing-steps">
+                        <div class="step-item active" id="step1">
+                            <div class="step-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <span>Analyzing content</span>
+                        </div>
+                        <div class="step-item" id="step2">
+                            <div class="step-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <span>AI processing</span>
+                        </div>
+                        <div class="step-item" id="step3">
+                            <div class="step-icon">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <span>Generating questions</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Section -->
+            <div class="quiz-card hidden" id="quizSection">
+                <div class="card-header">
+                    <div class="card-icon quiz">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="card-title">
+                        <h2>Quiz Time!</h2>
+                        <p>Test your understanding of the content</p>
+                    </div>
+                </div>
+
+                <div class="quiz-info" id="quizInfo"></div>
+                <div class="quiz-container" id="quizContainer"></div>
+
+                <div class="quiz-actions">
+                    <button id="submitQuizBtn" class="primary-btn hidden">
+                        <i class="fas fa-check"></i>
+                        Check My Answers
+                    </button>
+                    <button id="retakeQuizBtn" class="secondary-btn hidden">
+                        <i class="fas fa-redo"></i>
+                        Generate New Quiz
+                    </button>
+                </div>
+
+                <!-- Quiz Results Section -->
+                <div class="quiz-results hidden" id="quizResults">
+                    <div class="results-header">
+                        <h3>Quiz Results</h3>
+                        <div class="score-summary">
+                            <div class="score-circle">
+                                <div class="score-text">
+                                    <span class="score-percentage" id="scorePercentage">0%</span>
+                                    <span class="score-label">Score</span>
+                                </div>
+                            </div>
+                            <div class="score-details">
+                                <div class="score-item">
+                                    <span class="score-number correct" id="correctCount">0</span>
+                                    <span class="score-desc">Correct</span>
+                                </div>
+                                <div class="score-item">
+                                    <span class="score-number incorrect" id="incorrectCount">0</span>
+                                    <span class="score-desc">Incorrect</span>
+                                </div>
+                                <div class="score-item">
+                                    <span class="score-number total" id="totalQuestions">0</span>
+                                    <span class="score-desc">Total</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="results-charts">
+                        <div class="chart-container">
+                            <h4>Performance Overview</h4>
+                            <div class="chart-wrapper">
+                                <canvas id="resultsChart" width="300" height="300"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-container">
+                            <h4>Progress Bar</h4>
+                            <div class="progress-chart">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progressFill"></div>
+                                </div>
+                                <div class="progress-labels">
+                                    <span>0%</span>
+                                    <span>50%</span>
+                                    <span>100%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detailed-results" id="detailedResults">
+                        <!-- Detailed question-by-question results will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/home.js"></script>
+</body>
+</html>
