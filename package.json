@@ -6,8 +6,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "echo 'Build script executed'",
-    "vercel-build": "echo 'Vercel build script executed'"
+    "build": "echo 'Building assets' && cp -r public public_build",
+    "vercel-build": "npm run build",
+    "reset-db": "node reset-db.js"
   },
   "engines": {
     "node": ">=18.x"

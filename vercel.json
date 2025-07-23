@@ -12,12 +12,27 @@
   ],
   "routes": [
     {
-      "src": "/",
-      "dest": "public/home.html"
+      "src": "/css/(.*)",
+      "dest": "public/css/$1"
+    },
+    {
+      "src": "/js/(.*)",
+      "dest": "public/js/$1"
     },
     {
       "src": "/(.*)",
       "dest": "public/home.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
     }
   ]
 }
