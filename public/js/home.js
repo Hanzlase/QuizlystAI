@@ -137,6 +137,21 @@ Technical details: ${error.message}`;
             return;
         }
 
+        // Validate file types and size
+        const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+        const maxSize = 10 * 1024 * 1024; // 10MB
+
+        for (let file of files) {
+            if (!allowedTypes.includes(file.type)) {
+                alert(`Invalid file type: ${file.name}. Only PDF, DOCX, and TXT files are allowed.`);
+                return;
+            }
+            if (file.size > maxSize) {
+                alert(`File too large: ${file.name}. Maximum size is 10MB.`);
+                return;
+            }
+        }
+
         const processingSection = document.getElementById('processingSection');
         const notesSection = document.getElementById('notesSection');
 
@@ -153,14 +168,49 @@ Technical details: ${error.message}`;
                 const file = files[i];
                 updateProcessingMessage(`Processing file ${i + 1}/${files.length}: ${file.name}`);
 
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('mode', document.querySelector('.notes-option.active')?.dataset.mode || 'simple');
-                formData.append('customPrompt', document.getElementById('customInstructions').value.trim());
+                // Check if we're in production (Vercel) environment
+                const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+
+                let requestBody;
+                let requestHeaders = {};
+
+                if (isProduction) {
+                    // Production: Use base64 encoding
+                    updateProcessingMessage(`Converting file to base64: ${file.name}`);
+
+                    const fileData = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            // Remove the data URL prefix (e.g., "data:application/pdf;base64,")
+                            const base64Data = reader.result.split(',')[1];
+                            resolve(base64Data);
+                        };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+
+                    requestBody = JSON.stringify({
+                        fileData: fileData,
+                        fileName: file.name,
+                        fileType: file.type,
+                        mode: document.querySelector('.notes-option.active')?.dataset.mode || 'simple',
+                        customPrompt: document.getElementById('customInstructions').value.trim()
+                    });
+
+                    requestHeaders['Content-Type'] = 'application/json';
+                } else {
+                    // Local: Use traditional FormData
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('mode', document.querySelector('.notes-option.active')?.dataset.mode || 'simple');
+                    formData.append('customPrompt', document.getElementById('customInstructions').value.trim());
+                    requestBody = formData;
+                }
 
                 const response = await fetch('/api/content/upload', {
                     method: 'POST',
-                    body: formData
+                    headers: requestHeaders,
+                    body: requestBody
                 });
 
                 const data = await response.json();
