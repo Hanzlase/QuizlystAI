@@ -68,10 +68,21 @@ const extractContent = async (url, type) => {
             console.log('📺 Extracting YouTube transcript...');
             console.log('📺 YouTube URL:', url);
 
+            // Normalize YouTube URL first
+            const normalizedUrl = normalizeYouTubeUrl(url);
+            console.log('📺 Normalized URL:', normalizedUrl);
+
+            // Extract video ID for validation
+            const videoId = extractVideoId(normalizedUrl);
+            if (!videoId) {
+                throw new Error('Invalid YouTube URL: Could not extract video ID');
+            }
+            console.log('📺 Video ID:', videoId);
+
             try {
                 // Extract YouTube video transcript with timeout
                 const transcript = await Promise.race([
-                    YoutubeTranscript.fetchTranscript(url),
+                    YoutubeTranscript.fetchTranscript(normalizedUrl),
                     new Promise((_, reject) =>
                         setTimeout(() => reject(new Error('YouTube extraction timeout after 15 seconds')), 15000)
                     )
@@ -85,6 +96,15 @@ const extractContent = async (url, type) => {
 
                 let content = transcript.map(item => item.text).join(' ');
                 console.log('📺 Raw transcript length:', content.length);
+
+                // Validate that we got actual video content, not generic YouTube content
+                if (content.toLowerCase().includes('youtube is a global platform') ||
+                    content.toLowerCase().includes('youtube company') ||
+                    content.toLowerCase().includes('about youtube') ||
+                    content.length < 100) {
+                    console.log('📺 Detected generic YouTube content, trying alternative extraction...');
+                    throw new Error('Generic YouTube content detected');
+                }
 
                 // Limit YouTube content for faster processing
                 if (content.length > 5000) {
@@ -100,55 +120,115 @@ const extractContent = async (url, type) => {
             } catch (youtubeError) {
                 console.error('📺 YouTube extraction failed:', youtubeError.message);
 
-                // Try fallback method: extract video metadata (title, description)
-                console.log('📺 Attempting fallback: extracting video metadata...');
+                // Enhanced fallback method with video-specific extraction
+                console.log('📺 Attempting enhanced fallback: extracting video-specific metadata...');
                 try {
-                    const videoPageResponse = await axios.get(url, {
+                    // Add random delay to avoid rate limiting
+                    await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1000));
+
+                    // Fetch video page directly with better headers
+                    const videoPageResponse = await axios.get(normalizedUrl, {
                         headers: {
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                            'Accept-Language': 'en-US,en;q=0.5',
+                            'Accept-Encoding': 'gzip, deflate',
+                            'Connection': 'keep-alive',
+                            'Upgrade-Insecure-Requests': '1'
                         },
                         timeout: 10000
                     });
 
                     const $ = cheerio.load(videoPageResponse.data);
 
-                    // Extract video title and description
+                    // Extract video-specific metadata with better validation
                     let title = $('meta[property="og:title"]').attr('content') ||
-                               $('title').text() || '';
+                               $('meta[name="title"]').attr('content') ||
+                               $('title').text().replace(' - YouTube', '') || '';
+
                     let description = $('meta[property="og:description"]').attr('content') ||
                                     $('meta[name="description"]').attr('content') || '';
 
-                    // Try to extract more content from the page
-                    const videoDescription = $('#watch-description-text').text() ||
-                                           $('.content').text() ||
-                                           $('#description').text() || '';
-
-                    let fallbackContent = '';
-                    if (title) fallbackContent += `Title: ${title}\n\n`;
-                    if (description) fallbackContent += `Description: ${description}\n\n`;
-                    if (videoDescription) fallbackContent += `Video Description: ${videoDescription}`;
-
-                    if (fallbackContent.length > 100) {
-                        console.log('📺 Fallback successful: extracted metadata');
-                        return fallbackContent;
+                    // Validate that we're not getting generic YouTube content
+                    if (title.toLowerCase().includes('youtube') && title.length < 20) {
+                        title = ''; // Reset generic title
                     }
+                    if (description.toLowerCase().includes('youtube is a global platform') ||
+                        description.toLowerCase().includes('enjoy the videos and music you love')) {
+                        description = ''; // Reset generic description
+                    }
+
+                    console.log('📺 Extracted title:', title);
+                    console.log('📺 Extracted description length:', description.length);
+
+                    // Try to extract from ytInitialData (YouTube's data structure)
+                    const pageContent = videoPageResponse.data;
+                    const ytDataMatch = pageContent.match(/var ytInitialData = ({.*?});/);
+                    let ytDescription = '';
+                    if (ytDataMatch) {
+                        try {
+                            const ytData = JSON.parse(ytDataMatch[1]);
+                            const videoDetails = ytData?.contents?.twoColumnWatchNextResults?.results?.results?.contents?.[0]?.videoPrimaryInfoRenderer;
+                            if (videoDetails?.title?.runs?.[0]?.text) {
+                                title = videoDetails.title.runs[0].text;
+                            }
+
+                            const videoSecondary = ytData?.contents?.twoColumnWatchNextResults?.results?.results?.contents?.[1]?.videoSecondaryInfoRenderer;
+                            if (videoSecondary?.description?.runs) {
+                                ytDescription = videoSecondary.description.runs.map(run => run.text).join('');
+                            }
+                        } catch (parseError) {
+                            console.log('📺 Could not parse ytInitialData, continuing with basic extraction...');
+                        }
+                    }
+
+                    // Use the best available description
+                    if (ytDescription && ytDescription.length > description.length) {
+                        description = ytDescription;
+                    }
+
+                    // Combine title and description for content
+                    let fallbackContent = '';
+                    if (title && title.trim()) {
+                        fallbackContent += `Title: ${title.trim()}\n\n`;
+                    }
+                    if (description && description.trim()) {
+                        fallbackContent += `Description: ${description.trim()}`;
+                    }
+
+                    // Final validation
+                    if (!fallbackContent || fallbackContent.length < 50) {
+                        throw new Error('Could not extract meaningful content from video metadata');
+                    }
+
+                    // Validate it's not generic content
+                    if (fallbackContent.toLowerCase().includes('youtube is a global platform') ||
+                        fallbackContent.toLowerCase().includes('youtube company')) {
+                        throw new Error('Only generic YouTube content available');
+                    }
+
+                    console.log('📺 Fallback extraction successful, content length:', fallbackContent.length);
+                    return fallbackContent;
+
                 } catch (fallbackError) {
                     console.error('📺 Fallback extraction also failed:', fallbackError.message);
-                }
 
-                // Provide specific error messages for common YouTube issues
-                if (youtubeError.message.includes('captions')) {
-                    throw new Error('This YouTube video does not have captions/subtitles available. Please try a video with captions enabled.');
-                } else if (youtubeError.message.includes('timeout')) {
-                    throw new Error('YouTube video processing timed out. Please try again or use a shorter video.');
-                } else if (youtubeError.message.includes('too many requests')) {
-                    throw new Error('YouTube is temporarily blocking requests. Please wait a few minutes and try again.');
-                } else if (youtubeError.message.includes('unavailable')) {
-                    throw new Error('This YouTube video is unavailable or private. Please check the URL and try again.');
-                } else {
-                    throw new Error(`YouTube processing failed: ${youtubeError.message}`);
+                    // Provide specific error messages based on the type of failure
+                    if (youtubeError.message.includes('Transcript is disabled') ||
+                        youtubeError.message.includes('No transcript available')) {
+                        throw new Error('This YouTube video does not have captions/subtitles available. Please try a different video.');
+                    } else if (youtubeError.message.includes('Video unavailable') ||
+                               youtubeError.message.includes('private')) {
+                        throw new Error('This YouTube video is unavailable, private, or restricted. Please check the URL and try again with a public video.');
+                    } else if (youtubeError.message.includes('Video ID')) {
+                        throw new Error('Invalid YouTube URL format. Please use a valid YouTube video URL.');
+                    } else {
+                        throw new Error(`YouTube processing failed: ${youtubeError.message}. Please ensure the video has captions/subtitles enabled.`);
+                    }
                 }
             }
+
+
         } else {
             console.log('🌐 Extracting web page content...');
             // Extract content from regular web page with timeout
@@ -208,6 +288,82 @@ const extractContent = async (url, type) => {
     } catch (error) {
         console.error('Content extraction error:', error.message);
         throw new Error(`Failed to extract content: ${error.message}`);
+    }
+};
+
+// Helper function to normalize YouTube URLs
+function normalizeYouTubeUrl(url) {
+    try {
+        // Handle different YouTube URL formats
+        if (url.includes('youtu.be/')) {
+            const videoId = url.split('youtu.be/')[1].split('?')[0].split('&')[0];
+            return `https://www.youtube.com/watch?v=${videoId}`;
+        } else if (url.includes('youtube.com/watch')) {
+            // Already in correct format, but clean up parameters
+            const urlObj = new URL(url);
+            const videoId = urlObj.searchParams.get('v');
+            if (videoId) {
+                return `https://www.youtube.com/watch?v=${videoId}`;
+            }
+        } else if (url.includes('youtube.com/embed/')) {
+            const videoId = url.split('/embed/')[1].split('?')[0];
+            return `https://www.youtube.com/watch?v=${videoId}`;
+        }
+        return url;
+    } catch (error) {
+        console.error('URL normalization failed:', error);
+        return url;
+    }
+}
+
+// Helper function to extract video ID from YouTube URL
+function extractVideoId(url) {
+    try {
+        const urlObj = new URL(url);
+        if (urlObj.hostname.includes('youtube.com')) {
+            return urlObj.searchParams.get('v');
+        } else if (urlObj.hostname.includes('youtu.be')) {
+            return urlObj.pathname.slice(1);
+        }
+        return null;
+    } catch (error) {
+        console.error('Video ID extraction failed:', error);
+        return null;
+    }
+}
+
+// Helper function to extract text from uploaded files using buffer (for production)
+const extractFileContentFromBuffer = async (file) => {
+    try {
+        let content = '';
+
+        if (file.mimetype === 'application/pdf') {
+            // Extract text from PDF buffer
+            const pdfData = await pdfParse(file.buffer);
+            content = pdfData.text;
+        } else if (file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+            // Extract text from DOCX buffer
+            const docxData = await mammoth.extractRawText({ buffer: file.buffer });
+            content = docxData.value;
+        } else if (file.mimetype === 'text/plain') {
+            // Extract text from TXT buffer
+            content = file.buffer.toString('utf-8');
+        } else {
+            throw new Error('Unsupported file type');
+        }
+
+        // Clean and validate content
+        content = content.trim();
+        if (!content || content.length < 10) {
+            throw new Error('File appears to be empty or contains insufficient text');
+        }
+
+        console.log(`📄 Successfully extracted ${content.length} characters from ${file.originalname}`);
+        return content;
+
+    } catch (error) {
+        console.error('File content extraction error:', error);
+        throw new Error(`Failed to extract content from file: ${error.message}`);
     }
 };
 
@@ -276,7 +432,7 @@ const extractFileContent = async (file) => {
 };
 
 // Helper function to call AI API with dual API support
-const callAIApi = async (prompt, instructions = '', timeout = 50000) => { // 50 second timeout
+const callAIApi = async (prompt, instructions = '', timeout = 60000) => { // 60 second timeout
     // Check if primary API key is available
     if (!process.env.API_KEY) {
         throw new Error('API_KEY environment variable is not set');
@@ -285,7 +441,7 @@ const callAIApi = async (prompt, instructions = '', timeout = 50000) => { // 50 
     // Primary model (OpenRouter) and fallback model (Cohere)
     const modelConfigs = [
         {
-            model: "qwen/qwen3-235b-a22b-07-25:free",
+            model: "deepseek/deepseek-chat-v3-0324:free",
             apiKey: process.env.API_KEY,
             endpoint: "https://openrouter.ai/api/v1/chat/completions",
             provider: "OpenRouter"
@@ -441,50 +597,71 @@ ${customPrompt}
 
 Please analyze the above content and create detailed notes following the user's specific instructions. Use proper markdown formatting with headers, bullet points, and clear structure. Focus on the content provided above.`;
         } else {
-            notesPrompt = `Create comprehensive, detailed study notes from the following content. Format your response using proper markdown with clear structure:
+            notesPrompt = `Create exceptionally comprehensive and detailed study notes from the following content. Analyze every aspect thoroughly and extract maximum educational value:
 
-Content:
+CONTENT TO ANALYZE:
 ${extractedContent}
 
-FORMATTING REQUIREMENTS:
-- Use ## for main headings
-- Use ### for subheadings
-- Use * for bullet points
-- Use **bold** for important terms
-- Use proper line breaks between sections
-- Create clear, organized structure
+ADVANCED FORMATTING REQUIREMENTS:
+- Use ## for main topics/sections with descriptive, informative titles
+- Use ### for subtopics and detailed subsections
+- Use * for bullet points with comprehensive explanations
+- Use **bold** for key terms, critical concepts, and essential information
+- Use *italics* for emphasis on important insights and connections
+- Use clear line breaks and proper spacing for excellent readability
+- Create hierarchical structure that flows logically from general to specific
 
-CONTENT REQUIREMENTS:
-- Create detailed explanations for all key concepts
-- Include background context and definitions
-- Add examples and practical applications where relevant
-- Explain the "why" behind concepts, not just the "what"
-- Make it comprehensive enough for complete learning
-- Include any important details, statistics, or specific information mentioned
+COMPREHENSIVE CONTENT REQUIREMENTS:
+- Extract and explain ALL key concepts, facts, and information in detail
+- Provide thorough background context and clear definitions for technical terms
+- Include specific examples, case studies, and practical applications mentioned
+- Explain the "why" and "how" behind concepts, not just the "what"
+- Identify and highlight cause-and-effect relationships and connections
+- Include all important details, statistics, dates, figures, and specific data
+- Add explanatory context where concepts might be complex or unclear
+- Make connections between different ideas and concepts when applicable
+- Ensure comprehensive coverage that leaves no important information out
+- Create notes detailed enough for complete mastery of the subject matter
+- Organize information in a logical, educational sequence that builds understanding
 
-Format the response as well-structured markdown that will be easy to read and understand.`;
+Create exceptionally detailed, comprehensive, and well-structured notes that would enable someone to achieve complete understanding and mastery of this content. Prioritize depth, clarity, and educational thoroughness.
+
+IMPORTANT: Write ONLY the study notes content. Do not include any introductory phrases like "Here are the study notes" or concluding statements like "These notes cover..." - provide only the direct educational content formatted in markdown.`;
         }
 
         console.log(`🤖 Generating detailed notes (${mode} mode)...`);
 
         // Generate detailed notes using AI
         const systemPrompt = mode === 'custom' && customPrompt
-            ? "You are an expert educator and content analyst. The user has provided you with extracted content and specific instructions. Create detailed notes based on the provided content following the user's instructions exactly. Use proper markdown formatting. Do not ask for additional content - work with what has been provided."
-            : "You are an expert educator creating comprehensive study materials. Generate detailed, well-structured notes using proper markdown formatting. Use ## for main headings, ### for subheadings, * for bullet points, **bold** for key terms, and clear line breaks. Create organized, educational content that's easy to read and understand.";
+            ? "You are a world-class educator, content analyst, and learning specialist with expertise in creating exceptional educational materials. The user has provided you with extracted content and specific instructions. Your task is to create the most comprehensive, detailed, and educationally valuable notes possible based on the provided content, following the user's instructions exactly. Use advanced markdown formatting techniques and ensure maximum educational impact. Do not ask for additional content - work with what has been provided and extract every bit of educational value from it."
+            : "You are a world-class educator and learning specialist with expertise in creating exceptional study materials. Your mission is to generate the most comprehensive, detailed, and well-structured notes possible. You excel at breaking down complex information into clear, understandable segments while maintaining depth and thoroughness. Use advanced markdown formatting with ## for main headings, ### for subheadings, * for detailed bullet points, **bold** for critical terms and concepts, *italics* for emphasis, and perfect spacing. Create educational content that is both comprehensive and highly readable, ensuring students can achieve complete mastery of the subject matter. Write only the study notes content without any introductory or concluding meta-commentary.";
 
         const aiResponse = await callAIApi(
             notesPrompt,
             systemPrompt,
-            50000 // 50 second timeout for notes
+            60000 // 60 second timeout for notes
         );
 
         console.log(`📝 Notes generated, creating summary...`);
 
-        // Generate summary with shorter prompt
+        // Generate comprehensive summary
         const summary = await callAIApi(
-            `Summarize in 2-3 sentences: ${aiResponse}`,
-            "Create brief summaries.",
-            50000 // 50 second timeout for summary
+            `Based on the following detailed study notes, create a comprehensive yet concise summary:
+
+STUDY NOTES TO SUMMARIZE:
+${aiResponse}
+
+Requirements:
+- Capture all major topics and key concepts covered
+- Highlight the most important facts and insights
+- Maintain logical flow and connections between ideas
+- Use clear, engaging language that reinforces learning
+- Provide a complete overview that serves as a quick review
+- Be comprehensive enough to remind someone of all main points
+
+Write ONLY the summary content as 3-4 well-crafted sentences. Do not include any introductory phrases like "Here's a summary" or concluding statements like "This summary captures..." - provide only the direct summary content.`,
+            "You are an expert at creating comprehensive yet concise summaries. Write only the summary content without any meta-commentary, introductory phrases, or concluding statements. Provide direct, substantive summary content that captures the essence and key points of educational material.",
+            60000 // 60 second timeout for summary
         );
 
         // Store content in memory for quiz generation
@@ -510,24 +687,64 @@ Format the response as well-structured markdown that will be easy to read and un
     }
 });
 
-// Modified file upload endpoint for Vercel
-app.post('/api/content/upload', isVercel ? (_, res) => {
-  res.status(403).json({
-    message: 'File uploads are disabled in production. Please use URL input instead.'
-  });
-} : upload.single('file'), async (req, res) => {
+// Universal file upload endpoint that works in both local and production environments
+app.post('/api/content/upload', async (req, res) => {
   try {
-    const { mode = 'simple', customPrompt } = req.body;
-    const file = req.file;
+    const { mode = 'simple', customPrompt, fileData, fileName, fileType } = req.body;
 
-    if (!file) {
-      return res.status(400).json({ message: 'File is required' });
+    let file;
+    let extractedContent;
+
+    if (isVercel) {
+      // Production environment - handle base64 file data
+      if (!fileData || !fileName || !fileType) {
+        return res.status(400).json({ message: 'File data, name, and type are required for production uploads' });
+      }
+
+      console.log(`📁 Processing uploaded file (production): ${fileName}`);
+
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+      if (!allowedTypes.includes(fileType)) {
+        return res.status(400).json({ message: 'Invalid file type. Only PDF, DOCX, and TXT files are allowed.' });
+      }
+
+      // Convert base64 to buffer
+      const fileBuffer = Buffer.from(fileData, 'base64');
+
+      // Create file object for processing
+      file = {
+        originalname: fileName,
+        mimetype: fileType,
+        buffer: fileBuffer,
+        size: fileBuffer.length
+      };
+
+      // Check file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        return res.status(400).json({ message: 'File size exceeds 10MB limit' });
+      }
+
+      extractedContent = await extractFileContentFromBuffer(file);
+    } else {
+      // Local environment - handle traditional multer upload
+      const multerUpload = upload.single('file');
+
+      await new Promise((resolve, reject) => {
+        multerUpload(req, res, (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      file = req.file;
+      if (!file) {
+        return res.status(400).json({ message: 'File is required' });
+      }
+
+      console.log(`📁 Processing uploaded file (local): ${file.originalname}`);
+      extractedContent = await extractFileContent(file);
     }
-
-    console.log(`📁 Processing uploaded file: ${file.originalname}`);
-
-    // Extract content from the uploaded file
-    const extractedContent = await extractFileContent(file);
 
     if (!extractedContent || extractedContent.length < 50) {
       return res.status(400).json({ message: 'Could not extract meaningful content from the uploaded file' });
@@ -548,18 +765,41 @@ ${customPrompt}
 
 Please analyze the above document content and create detailed notes following the user's specific instructions. Use proper markdown formatting with headers, bullet points, and clear structure. Focus on the content provided above, not on requesting additional files.`;
     } else {
-      notesPrompt = `Please create comprehensive study notes from the following document content. Focus on key concepts, important facts, and explanations:
+      notesPrompt = `Create exceptionally comprehensive and detailed study notes from the following document content. Analyze every aspect thoroughly and extract maximum educational value:
 
-DOCUMENT CONTENT:
+DOCUMENT CONTENT TO ANALYZE:
 ${extractedContent}
 
-Create detailed, well-structured notes using markdown formatting with headers, bullet points, and clear organization.`;
+ADVANCED FORMATTING REQUIREMENTS:
+- Use ## for main topics/sections with descriptive, informative titles
+- Use ### for subtopics and detailed subsections
+- Use * for bullet points with comprehensive explanations
+- Use **bold** for key terms, critical concepts, and essential information
+- Use *italics* for emphasis on important insights and connections
+- Use clear line breaks and proper spacing for excellent readability
+- Create hierarchical structure that flows logically from general to specific
+
+COMPREHENSIVE CONTENT REQUIREMENTS:
+- Extract and explain ALL key concepts, facts, and information in detail
+- Provide thorough background context and clear definitions for technical terms
+- Include specific examples, case studies, and practical applications mentioned
+- Explain the "why" and "how" behind concepts, not just the "what"
+- Identify and highlight cause-and-effect relationships and connections
+- Include all important details, statistics, dates, figures, and specific data
+- Add explanatory context where concepts might be complex or unclear
+- Make connections between different ideas and concepts when applicable
+- Ensure comprehensive coverage that leaves no important information out
+- Create notes detailed enough for complete mastery of the subject matter
+
+Create exceptionally detailed, comprehensive, and well-structured notes that would enable someone to achieve complete understanding and mastery of this document content.
+
+IMPORTANT: Write ONLY the study notes content. Do not include any introductory phrases like "Here are the study notes" or concluding statements like "These notes cover..." - provide only the direct educational content formatted in markdown.`;
     }
 
     // Generate notes using AI
     const systemPrompt = mode === 'custom' && customPrompt
-      ? "You are an expert educator and content analyst. The user has provided you with extracted document content and specific instructions. Create detailed notes based on the provided content following the user's instructions exactly. Use proper markdown formatting. Do not ask for additional files or content - work with what has been provided."
-      : "You are an expert educator who creates clear, well-structured study notes. Format your response with bullet points, headings, and clear explanations.";
+      ? "You are a world-class educator, content analyst, and learning specialist with expertise in creating exceptional educational materials. The user has provided you with extracted document content and specific instructions. Your task is to create the most comprehensive, detailed, and educationally valuable notes possible based on the provided content, following the user's instructions exactly. Use advanced markdown formatting techniques and ensure maximum educational impact. Do not ask for additional files or content - work with what has been provided and extract every bit of educational value from it."
+      : "You are a world-class educator and learning specialist with expertise in creating exceptional study materials from document content. Your mission is to generate the most comprehensive, detailed, and well-structured notes possible. You excel at breaking down complex information into clear, understandable segments while maintaining depth and thoroughness. Use advanced markdown formatting and create educational content that is both comprehensive and highly readable, ensuring students can achieve complete mastery of the subject matter. Write only the study notes content without any introductory or concluding meta-commentary.";
 
     const aiResponse = await callAIApi(
       notesPrompt,
@@ -718,8 +958,8 @@ CRITICAL:
                 try {
                     const quizResponse = await callAIApi(
                         batchPrompt,
-                        "You are an expert quiz creator who generates well-structured multiple choice questions for educational assessment.",
-                        50000 // 50 second timeout for quiz generation
+                        "You are a world-class educational assessment specialist and expert quiz creator with extensive experience in developing high-quality multiple choice questions. You excel at creating questions that accurately assess student understanding while maintaining perfect formatting consistency. Your questions are pedagogically sound, appropriately challenging, and designed to reinforce learning. You always follow formatting requirements precisely and create educationally valuable assessments.",
+                        60000 // 60 second timeout for quiz generation
                     );
 
                     console.log(`🤖 AI Quiz Response received for batch ${batch + 1}`);
@@ -749,8 +989,8 @@ CRITICAL:
                 try {
                     const quizResponse = await callAIApi(
                         quizPrompt,
-                        "You are an expert quiz creator who generates well-structured multiple choice questions for educational assessment.",
-                        50000 // 50 second timeout for quiz generation
+                        "You are a world-class educational assessment specialist and expert quiz creator with extensive experience in developing high-quality multiple choice questions. You excel at creating questions that accurately assess student understanding while maintaining perfect formatting consistency. Your questions are pedagogically sound, appropriately challenging, and designed to reinforce learning. You always follow formatting requirements precisely and create educationally valuable assessments.",
+                        60000 // 60 second timeout for quiz generation
                     );
 
                     console.log('🤖 AI Quiz Response received');
@@ -972,8 +1212,8 @@ CRITICAL:
 
         const quizResponse = await callAIApi(
             quizPrompt,
-            "You are an expert quiz creator who generates well-structured multiple choice questions for educational assessment.",
-            50000 // 50 second timeout for quiz generation
+            "You are a world-class educational assessment specialist and expert quiz creator with extensive experience in developing high-quality multiple choice questions. You excel at creating questions that accurately assess student understanding while maintaining perfect formatting consistency. Your questions are pedagogically sound, appropriately challenging, and designed to reinforce learning. You always follow formatting requirements precisely and create educationally valuable assessments.",
+            60000 // 60 second timeout for quiz generation
         );
 
         console.log('🤖 AI Quiz Response received for difficulty change');
